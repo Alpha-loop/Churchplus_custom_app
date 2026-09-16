@@ -1,0 +1,16 @@
+export const STORAGE_KEYS = {
+  USER_EMAIL:
+    "USER_EMAIL",
+
+  REMEMBER_ME:
+    "REMEMBER_ME",
+
+  AUTH_TOKEN:
+    "AUTH_TOKEN",
+
+  SELECTED_CHURCH:
+    "SELECTED_CHURCH",
+
+  APP_THEME:
+    "APP_THEME",
+} as const;
