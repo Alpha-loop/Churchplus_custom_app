@@ -205,6 +205,14 @@ export default function App() {
           size="large"
           color="#1D3AA8"
         />
+
+        <Text
+          style={
+            styles.poweredByText
+          }
+        >
+          Powered by ChurchPlus
+        </Text>
       </View>
     );
   }
@@ -251,6 +259,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
 
     padding: 24,
+  },
+
+  poweredByText: {
+    marginTop: 16,
+
+    fontSize: 13,
+
+    fontWeight: "600",
+
+    color: "rgba(0,0,0,0.4)",
+
+    letterSpacing: 0.3,
   },
 
   errorText: {

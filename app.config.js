@@ -8,6 +8,14 @@
 // single-church build, so every one of these should genuinely be
 // set per church, not left at a shared default.
 
+// Explicitly load .env here rather than assume the surrounding
+// CLI command already does it — some commands that evaluate this
+// file (like linking an EAS project during `eas build`) don't
+// reliably auto-load .env the way `expo start` does, which is
+// exactly what was causing EAS_PROJECT_ID to go unseen even
+// though it was genuinely set in .env.
+require("dotenv").config();
+
 const APP_NAME =
   process.env.APP_NAME ||
   "Church App";

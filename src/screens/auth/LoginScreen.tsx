@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,7 +13,6 @@ import {
 } from "react-native";
 
 import {
-  Church,
   Mail,
   Lock,
   Eye,
@@ -98,9 +98,17 @@ export default function ModernLoginScreen({
               styles.iconWrap
             }
           >
-            <Church
-              size={26}
-              color="#FFFFFF"
+            <Image
+              // Local bundled asset instead of fullProfile.logoUrl
+              // — this is a dedicated single-church build, so the
+              // logo is guaranteed to be there and loads instantly
+              // with no network dependency, unlike a remote fetch.
+              // Adjust this filename if yours differs from
+              // "logo.png" in the project's assets/ folder.
+              source={require("../../../assets/logo-full.png")}
+              style={
+                styles.logoImage
+              }
             />
           </View>
 
@@ -378,6 +386,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
 
     marginBottom: 14,
+
+    overflow: "hidden",
+  },
+
+  logoImage: {
+    width: "100%",
+
+    height: "100%",
+
+    resizeMode: "cover",
   },
 
   churchName: {
