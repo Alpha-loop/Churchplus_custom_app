@@ -1,10 +1,11 @@
 import {
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import { Play } from "lucide-react-native";
 
@@ -56,6 +57,7 @@ export default function TrendingVideoCard({
       >
         {thumbnail ? (
           <Image
+              cachePolicy="memory-disk"
             source={{
               uri: thumbnail,
             }}

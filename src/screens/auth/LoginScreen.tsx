@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,6 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   Mail,
@@ -23,6 +24,8 @@ import {
 
 import useLogin from "@/modules/auth/hooks/useLogin";
 
+import { useAuthStore } from "@/store/authStore";
+
 import { useChurchStore } from "@/store/churchStore";
 
 export default function ModernLoginScreen({
@@ -32,6 +35,10 @@ export default function ModernLoginScreen({
     loading,
     handleLogin,
   } = useLogin();
+
+  const enterGuestMode = useAuthStore(
+    state => state.enterGuestMode
+  );
 
   const fullProfile = useChurchStore(
     state => state.fullProfile
@@ -74,6 +81,29 @@ export default function ModernLoginScreen({
     }
   };
 
+  const onContinueAsGuest = () => {
+    enterGuestMode();
+
+    // Same reasoning as useRequireAuth.ts's goToLogin — entering
+    // guest mode is a state update, and AppNavigator only
+    // registers "Main" once canAccessMain (accessToken || isGuest)
+    // actually recomputes as true on the next render. Deferring
+    // one tick lets that happen before navigating, rather than
+    // firing the reset against a navigator that hasn't registered
+    // "Main" yet. reset() (not navigate()) so there's nothing to
+    // go "back" to on the auth stack afterward — a guest landing
+    // on Main shouldn't be able to swipe/back into Login.
+    setTimeout(() => {
+      navigation.reset({
+        index: 0,
+
+        routes: [
+          { name: "Main" },
+        ],
+      });
+    }, 0);
+  };
+
   console.log(fullProfile);
 
   return (
@@ -99,6 +129,7 @@ export default function ModernLoginScreen({
             }
           >
             <Image
+              cachePolicy="memory-disk"
               // Local bundled asset instead of fullProfile.logoUrl
               // — this is a dedicated single-church build, so the
               // logo is guaranteed to be there and loads instantly
@@ -106,6 +137,7 @@ export default function ModernLoginScreen({
               // Adjust this filename if yours differs from
               // "logo.png" in the project's assets/ folder.
               source={require("../../../assets/logo-full.png")}
+              contentFit="cover"
               style={
                 styles.logoImage
               }
@@ -341,6 +373,24 @@ export default function ModernLoginScreen({
               </Text>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={
+              onContinueAsGuest
+            }
+            style={
+              styles.guestWrap
+            }
+          >
+            <Text
+              style={
+                styles.guestText
+              }
+            >
+              Continue as Guest
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -394,8 +444,6 @@ const styles = StyleSheet.create({
     width: "100%",
 
     height: "100%",
-
-    resizeMode: "cover",
   },
 
   churchName: {
@@ -566,5 +614,21 @@ const styles = StyleSheet.create({
     fontWeight: "700",
 
     color: "#1D3AA8",
+  },
+
+  guestWrap: {
+    marginTop: 18,
+
+    alignItems: "center",
+  },
+
+  guestText: {
+    fontSize: 13,
+
+    fontWeight: "600",
+
+    color: "rgba(0,0,0,0.45)",
+
+    textDecorationLine: "underline",
   },
 });

@@ -1,6 +1,5 @@
 import {
   Alert,
-  Image,
   ScrollView,
   Share,
   StatusBar,
@@ -9,6 +8,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   ChevronLeft,
@@ -131,6 +132,7 @@ export default function ModernEventDetailsScreen({
         >
           {event.primaryImageUrl ? (
             <Image
+              cachePolicy="memory-disk"
               source={{
                 uri: event.primaryImageUrl,
               }}

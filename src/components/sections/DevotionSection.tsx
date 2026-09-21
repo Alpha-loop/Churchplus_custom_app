@@ -1,10 +1,11 @@
 import {
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   ArrowRight,
@@ -46,6 +47,7 @@ export default function DevotionSection({
     >
       <View style={styles.imageContainer}>
         <Image
+              cachePolicy="memory-disk"
           source={{
             uri: devotional.mediaUrl,
           }}

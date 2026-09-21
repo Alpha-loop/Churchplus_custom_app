@@ -1,11 +1,12 @@
 import {
   ActivityIndicator,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   MapPin,
@@ -27,6 +28,7 @@ function PersonPhoto({
 }) {
   return photo ? (
     <Image
+              cachePolicy="memory-disk"
       source={{ uri: photo }}
       style={styles.photo}
     />
@@ -52,6 +54,8 @@ export default function ModernSocialsScreen() {
     sendRequest,
   } =
     useMeetupDiscovery();
+
+  
 
   if (loading) {
     return (

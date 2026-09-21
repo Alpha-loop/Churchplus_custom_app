@@ -1,10 +1,11 @@
 import {
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   Play,
@@ -81,6 +82,7 @@ export default function MediaSection({
       >
         {thumbnail ? (
           <Image
+              cachePolicy="memory-disk"
             source={{
               uri: thumbnail,
             }}

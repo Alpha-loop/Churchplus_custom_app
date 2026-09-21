@@ -1,12 +1,13 @@
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import { ChevronLeft } from "lucide-react-native";
 
@@ -112,6 +113,7 @@ export default function ModernNewChatScreen({
             >
               {item.photo ? (
                 <Image
+              cachePolicy="memory-disk"
                   source={{
                     uri: item.photo,
                   }}

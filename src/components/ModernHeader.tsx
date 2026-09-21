@@ -4,12 +4,13 @@ import {
 
 import {
   Alert,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import { Menu } from "lucide-react-native";
 
@@ -20,6 +21,8 @@ import { useNavigation } from "@react-navigation/native";
 import useProfile from "@/modules/profile/hooks/useProfile";
 
 import { useAuthStore } from "@/store/authStore";
+
+import useRequireAuth from "@/modules/auth/hooks/useRequireAuth";
 
 import ModernMenuDrawer from "./ModernMenuDrawer";
 
@@ -57,6 +60,17 @@ export default function ModernHeader({
     state => state.logout
   );
 
+  const isGuest = useAuthStore(
+    state => state.isGuest
+  );
+
+  const exitGuestMode = useAuthStore(
+    state => state.exitGuestMode
+  );
+
+  const { requireAuth } =
+    useRequireAuth();
+
   const [
     menuVisible,
     setMenuVisible,
@@ -76,24 +90,41 @@ export default function ModernHeader({
 
     switch (route) {
       case "DevotionalLibrary":
-      case "Profile":
-      case "Settings":
       case "CommunityGroups":
-      case "Messages":
-      case "Notifications":
-        // Real, built destinations, all reachable directly from
-        // here via the root stack. CommunityGroups actually opens
-        // "Community" — the drawer's label doesn't need to match
-        // the screen name. Notifications now shows real friend
-        // requests + real church announcements — see
-        // NotificationsScreen.tsx for what's genuinely backed vs.
-        // what the original design fabricated (donation receipts,
-        // prayer replies, mutual-connection counts, unread state
-        // — none of which exist anywhere in this codebase).
+        // Content browsing — open to guests, same "read is open,
+        // write is gated" rule requireAuth() enforces everywhere
+        // else in this app.
         navigation.navigate(
           route === "CommunityGroups"
             ? "Community"
             : route
+        );
+
+        return;
+
+      case "Profile":
+      case "Settings":
+      case "Messages":
+      case "Notifications":
+        // Account-specific — a guest has no real profile,
+        // messages, or notifications to view. Was navigating
+        // straight there for a guest too, landing on a confusing
+        // screen showing generic/empty state instead of an actual
+        // error — not a crash, but not right either. Notifications
+        // now shows real friend requests + real church
+        // announcements — see NotificationsScreen.tsx for what's
+        // genuinely backed vs. what the original design fabricated
+        // (donation receipts, prayer replies, mutual-connection
+        // counts, unread state — none of which exist anywhere in
+        // this codebase).
+        requireAuth(
+          () =>
+            navigation.navigate(
+              route
+            ),
+          {
+            message: `Sign in to view your ${route.toLowerCase()}.`,
+          }
         );
 
         return;
@@ -110,6 +141,15 @@ export default function ModernHeader({
         // Explicit reset fixes it; the setTimeout defers just
         // long enough for that re-render to register "Login"
         // before navigating to it.
+        //
+        // For a guest specifically, logout() alone changes
+        // nothing — isGuest deliberately isn't touched by it (see
+        // authStore.ts's own comment on that), so canAccessMain
+        // would stay true and "Login" would never actually be
+        // registered to reset into, hitting the exact same "RESET
+        // not handled" crash fixed elsewhere for other triggers.
+        // exitGuestMode() first is what actually flips
+        // canAccessMain to false.
         Alert.alert(
           "Log Out",
           "Are you sure you want to log out?",
@@ -126,7 +166,11 @@ export default function ModernHeader({
               style: "destructive",
 
               onPress: async () => {
-                await logout();
+                if (isGuest) {
+                  exitGuestMode();
+                } else {
+                  await logout();
+                }
 
                 setTimeout(() => {
                   navigation.reset(
@@ -204,14 +248,22 @@ export default function ModernHeader({
 
       <TouchableOpacity
         onPress={() =>
-          navigation.navigate(
-            "Profile"
+          requireAuth(
+            () =>
+              navigation.navigate(
+                "Profile"
+              ),
+            {
+              message:
+                "Sign in to view your profile.",
+            }
           )
         }
         hitSlop={10}
       >
         {avatarUrl ? (
           <Image
+              cachePolicy="memory-disk"
             source={{
               uri: avatarUrl,
             }}

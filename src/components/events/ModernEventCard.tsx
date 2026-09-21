@@ -1,10 +1,11 @@
 import {
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   Calendar,
@@ -69,6 +70,7 @@ export default function ModernEventCard({
     >
       {event.primaryImageUrl ? (
         <Image
+              cachePolicy="memory-disk"
           source={{
             uri: event.primaryImageUrl,
           }}

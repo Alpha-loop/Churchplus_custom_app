@@ -163,22 +163,44 @@ return;
     const newComment =
       res?.data?.object;
 
+    // Was newComment.personBasicInfoDTO.firstName directly — this
+    // backend can return a comment record with personBasicInfoDTO
+    // null (confirmed directly: happened for an unauthenticated
+    // request that still got accepted), which crashed the whole
+    // screen instead of just showing a slightly generic name for
+    // one comment. Falls back to the current user's own known
+    // name/photo — this is always about the comment *I* just
+    // posted, so that's a correct fallback, not a guess.
+    const personInfo =
+      newComment?.personBasicInfoDTO;
+
+    const fallbackName = [
+      user?.firstName,
+      user?.lastName,
+    ]
+      .filter(Boolean)
+      .join(" ") || "You";
+
     setComments(
       prev => [
         {
           commentId:
-            newComment.commentId,
+            newComment?.commentId,
 
-          commenterName: `${newComment.personBasicInfoDTO.firstName} ${newComment.personBasicInfoDTO.lastName}`,
+          commenterName:
+            personInfo
+              ? `${personInfo.firstName} ${personInfo.lastName}`
+              : fallbackName,
 
           commentDate:
-            newComment.commentDate,
+            newComment?.commentDate,
 
           commentMessage:
-            newComment.commentMessage,
+            newComment?.commentMessage,
 
           photo:
-            newComment.personBasicInfoDTO.photo,
+            personInfo?.photo ??
+            user?.photo,
         },
 
         ...prev,

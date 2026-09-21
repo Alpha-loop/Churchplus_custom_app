@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   RefreshControl,
   StyleSheet,
   Text,
@@ -11,6 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   ChevronLeft,
@@ -309,6 +310,7 @@ export default function ModernMessagesScreen({
                 >
                   {otherUser?.pictureUrl ? (
                     <Image
+              cachePolicy="memory-disk"
                       source={{
                         uri: otherUser.pictureUrl,
                       }}

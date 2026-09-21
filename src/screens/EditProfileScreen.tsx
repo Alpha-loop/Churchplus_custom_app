@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import {
   ActivityIndicator,
-  Image,
   ScrollView,
   StyleSheet,
   Switch,
@@ -11,6 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   ChevronLeft,
@@ -193,6 +194,7 @@ export default function ModernEditProfileScreen({
         >
           {imageUri ? (
             <Image
+              cachePolicy="memory-disk"
               source={{
                 uri: imageUri,
               }}

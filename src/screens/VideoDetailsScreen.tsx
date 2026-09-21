@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import {
   Alert,
-  Image,
   ScrollView,
   Share,
   StyleSheet,
@@ -10,6 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   ChevronLeft,
@@ -363,6 +364,7 @@ export default function ModernVideoDetailsScreen({
                     >
                       {video.thumbnailUrl ? (
                         <Image
+              cachePolicy="memory-disk"
                           source={{
                             uri: video.thumbnailUrl,
                           }}

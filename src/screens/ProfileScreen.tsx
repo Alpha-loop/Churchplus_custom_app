@@ -1,12 +1,13 @@
 import {
   ActivityIndicator,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   ChevronLeft,
@@ -122,6 +123,7 @@ export default function ModernProfileScreen({
         >
           {profile?.pictureUrl ? (
             <Image
+              cachePolicy="memory-disk"
               source={{
                 uri: profile.pictureUrl,
               }}

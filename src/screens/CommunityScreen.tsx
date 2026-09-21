@@ -4,13 +4,23 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
-import { Users, ChevronRight } from "lucide-react-native";
+import { Image } from "expo-image";
+
+import {
+  Users,
+  ChevronRight,
+  ImagePlus,
+  X,
+} from "lucide-react-native";
 
 import useCommunityFeed from "@/modules/home/hooks/useCommunityFeed";
+
+import useCreatePost from "@/modules/social/hooks/useCreatePost";
 
 import { useChurchStore } from "@/store/churchStore";
 
@@ -31,7 +41,21 @@ export default function ModernCommunityScreen({
     feeds,
     handleLike,
     onRefresh,
+    prependFeed,
   } = useCommunityFeed();
+
+  // Adds the new post straight to the top of the local list —
+  // see useCommunityFeed.ts's prependFeed for why this is a
+  // direct prepend rather than a refetch.
+  const {
+    content,
+    setContent,
+    imageUri,
+    pickImage,
+    removeImage,
+    loading: publishing,
+    publishPost,
+  } = useCreatePost(prependFeed);
 
   const fullProfile = useChurchStore(
     state => state.fullProfile
@@ -60,6 +84,7 @@ export default function ModernCommunityScreen({
       showsVerticalScrollIndicator={
         false
       }
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         <RefreshControl
           refreshing={
@@ -90,13 +115,7 @@ export default function ModernCommunityScreen({
         conversations.
       </Text>
 
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() =>
-          navigation.navigate(
-            "CreatePost"
-          )
-        }
+      <View
         style={[
           styles.composer,
           {
@@ -105,16 +124,113 @@ export default function ModernCommunityScreen({
           },
         ]}
       >
-        <Text
+        <TextInput
+          value={content}
+          onChangeText={
+            setContent
+          }
+          placeholder="Share a prayer request or thought..."
+          placeholderTextColor={colors.textMuted}
+          multiline
           style={[
-            styles.composerText,
-            { color: colors.textMuted },
+            styles.composerInput,
+            { color: colors.textPrimary },
           ]}
+        />
+
+        {imageUri ? (
+          <View
+            style={
+              styles.imagePreviewWrap
+            }
+          >
+            <Image
+              cachePolicy="memory-disk"
+              source={{
+                uri: imageUri,
+              }}
+              style={
+                styles.imagePreview
+              }
+            />
+
+            <TouchableOpacity
+              onPress={
+                removeImage
+              }
+              style={[
+                styles.removeImageButton,
+                { backgroundColor: colors.overlay },
+              ]}
+            >
+              <X
+                size={14}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        <View
+          style={
+            styles.composerFooter
+          }
         >
-          Share a prayer request
-          or thought...
-        </Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={pickImage}
+            style={
+              styles.addImageButton
+            }
+          >
+            <ImagePlus
+              size={18}
+              color={colors.primary}
+            />
+
+            <Text
+              style={[
+                styles.addImageText,
+                { color: colors.primary },
+              ]}
+            >
+              Photo
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
+            disabled={
+              publishing ||
+              !content.trim()
+            }
+            onPress={
+              publishPost
+            }
+            style={[
+              styles.postButton,
+              {
+                backgroundColor: colors.primary,
+                opacity:
+                  publishing ||
+                  !content.trim()
+                    ? 0.5
+                    : 1,
+              },
+            ]}
+          >
+            <Text
+              style={
+                styles.postButtonText
+              }
+            >
+              {publishing
+                ? "Posting..."
+                : "Post"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <Text
         style={[
@@ -272,15 +388,99 @@ const styles = StyleSheet.create({
 
     paddingHorizontal: 16,
 
-    paddingVertical: 14,
+    paddingTop: 14,
+
+    paddingBottom: 10,
 
     marginBottom: 20,
 
     borderWidth: 1,
   },
 
-  composerText: {
+  composerInput: {
     fontSize: 14,
+
+    minHeight: 44,
+
+    textAlignVertical: "top",
+  },
+
+  imagePreviewWrap: {
+    marginTop: 10,
+
+    position: "relative",
+
+    alignSelf: "flex-start",
+  },
+
+  imagePreview: {
+    width: 120,
+
+    height: 120,
+
+    borderRadius: 10,
+  },
+
+  removeImageButton: {
+    position: "absolute",
+
+    top: 6,
+
+    right: 6,
+
+    width: 22,
+
+    height: 22,
+
+    borderRadius: 11,
+
+    alignItems: "center",
+
+    justifyContent: "center",
+  },
+
+  composerFooter: {
+    flexDirection: "row",
+
+    alignItems: "center",
+
+    justifyContent: "space-between",
+
+    marginTop: 10,
+  },
+
+  addImageButton: {
+    flexDirection: "row",
+
+    alignItems: "center",
+
+    gap: 6,
+
+    paddingVertical: 6,
+
+    paddingHorizontal: 4,
+  },
+
+  addImageText: {
+    fontSize: 13,
+
+    fontWeight: "600",
+  },
+
+  postButton: {
+    borderRadius: 18,
+
+    paddingHorizontal: 20,
+
+    paddingVertical: 9,
+  },
+
+  postButtonText: {
+    color: "#FFFFFF",
+
+    fontSize: 13,
+
+    fontWeight: "700",
   },
 
   sectionTitle: {

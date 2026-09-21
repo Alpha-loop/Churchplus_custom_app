@@ -5,13 +5,14 @@ import {
 
 import {
   FlatList,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   SafeAreaView,
@@ -103,6 +104,7 @@ export default function ModernOnboardingScreen({
         }
       >
         <Image
+              cachePolicy="memory-disk"
           source={{
             uri: item.image,
           }}

@@ -1,11 +1,12 @@
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import { ChevronLeft, Clock } from "lucide-react-native";
 
@@ -121,6 +122,7 @@ export default function ModernDevotionalsScreen({
             {today.mediaUrl ? (
               <View>
                 <Image
+              cachePolicy="memory-disk"
                   source={{
                     uri: today.mediaUrl,
                   }}
@@ -313,6 +315,7 @@ export default function ModernDevotionalsScreen({
 
                   {devotion.mediaUrl ? (
                     <Image
+              cachePolicy="memory-disk"
                       source={{
                         uri: devotion.mediaUrl,
                       }}

@@ -1,5 +1,4 @@
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -9,6 +8,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   ChevronLeft,
@@ -25,6 +26,10 @@ import { useChurchStore } from "@/store/churchStore";
 import { formatDevotionalDate } from "../screenUtils/formatDevotionalDate";
 
 import { useTheme } from "@/theme/ThemeContext";
+
+import useRequireAuth from "@/modules/auth/hooks/useRequireAuth";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const getPosterName = (
   feed: any,
@@ -59,6 +64,11 @@ export default function ModernPostDetailScreen({
   route,
 }: any) {
   const { colors } = useTheme();
+
+  const { requireAuth } =
+    useRequireAuth();
+
+  const insets = useSafeAreaInsets();
 
   const { feed } = route.params;
 
@@ -164,6 +174,7 @@ export default function ModernPostDetailScreen({
             >
               {posterPhoto ? (
                 <Image
+              cachePolicy="memory-disk"
                   source={{
                     uri: posterPhoto,
                   }}
@@ -222,6 +233,7 @@ export default function ModernPostDetailScreen({
 
           {feed.mediaUrl ? (
             <Image
+              cachePolicy="memory-disk"
               source={{
                 uri: feed.mediaUrl,
               }}
@@ -241,8 +253,14 @@ export default function ModernPostDetailScreen({
               style={
                 styles.stat
               }
-              onPress={
-                toggleLike
+              onPress={() =>
+                requireAuth(
+                  toggleLike,
+                  {
+                    message:
+                      "Sign in to like this post.",
+                  }
+                )
               }
             >
               <Heart
@@ -356,6 +374,7 @@ export default function ModernPostDetailScreen({
               {comment.photo ||
               comment.commenterPicture ? (
                 <Image
+              cachePolicy="memory-disk"
                   source={{
                     uri:
                       comment.photo ||
@@ -443,6 +462,15 @@ export default function ModernPostDetailScreen({
           {
             backgroundColor: colors.surface,
             borderTopColor: colors.border,
+
+            // Was fixed padding: 12 with no safe-area awareness —
+            // same class of bug as the bottom tab bar fix
+            // elsewhere in this app. On a device with a home
+            // indicator instead of a physical button, this
+            // squeezed the input/send button right up against
+            // the gesture area.
+            paddingBottom:
+              12 + insets.bottom,
           },
         ]}
       >
@@ -465,8 +493,14 @@ export default function ModernPostDetailScreen({
         />
 
         <TouchableOpacity
-          onPress={
-            createComment
+          onPress={() =>
+            requireAuth(
+              createComment,
+              {
+                message:
+                  "Sign in to comment on this post.",
+              }
+            )
           }
           disabled={
             loadingComment ||

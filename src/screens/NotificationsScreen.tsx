@@ -1,6 +1,5 @@
 import {
   ActivityIndicator,
-  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -8,6 +7,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   ChevronLeft,
@@ -172,6 +173,7 @@ export default function ModernNotificationsScreen({
                         ?.friendRequester
                         ?.pictureUrl ? (
                         <Image
+              cachePolicy="memory-disk"
                           source={{
                             uri: item
                               .friendRequester

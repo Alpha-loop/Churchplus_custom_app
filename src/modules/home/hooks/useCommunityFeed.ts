@@ -157,6 +157,22 @@ export default function useCommunityFeed() {
     setRefreshing(false);
   };
 
+  // For a post the person just created themselves — added
+  // directly to the front of the list rather than relying on
+  // onRefresh(), since a full refetch just hands back whatever
+  // order the backend gives within the social block (no reliable
+  // timestamp to sort by, per the note above), which could still
+  // land a brand new post anywhere in the middle of that block,
+  // not necessarily the top.
+  const prependFeed = (
+    item: any
+  ) => {
+    setFeeds(prev => [
+      item,
+      ...prev,
+    ]);
+  };
+
   const handleLike = async (
     item: any,
     index: number
@@ -222,6 +238,7 @@ export default function useCommunityFeed() {
     loading,
     refreshing,
     onRefresh,
+    prependFeed,
     handleLike,
   };
 }

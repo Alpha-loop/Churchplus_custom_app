@@ -1,5 +1,4 @@
 import {
-  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -7,6 +6,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   SafeAreaProvider,
@@ -141,6 +142,7 @@ export default function ModernMenuDrawer({
               >
                 {userPhotoUrl ? (
                   <Image
+              cachePolicy="memory-disk"
                     source={{
                       uri: userPhotoUrl,
                     }}

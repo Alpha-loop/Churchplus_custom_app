@@ -1,10 +1,11 @@
 import {
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import { Heart, MessageCircle } from "lucide-react-native";
 
@@ -80,6 +81,7 @@ export default function CommunityFeedCard({
       <View style={styles.header}>
         {posterPhoto ? (
           <Image
+              cachePolicy="memory-disk"
             source={{
               uri: posterPhoto,
             }}
@@ -171,6 +173,7 @@ export default function CommunityFeedCard({
 
         {item.mediaUrl ? (
           <Image
+              cachePolicy="memory-disk"
             source={{
               uri: item.mediaUrl,
             }}

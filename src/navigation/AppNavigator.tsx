@@ -33,7 +33,6 @@ import VideoDetailsScreen from "@/screens/VideoDetailsScreen";
 import ExternalUrlScreen from "@/shared/screens/ExternalUrlScreen";
 import EventQRScannerScreen from "@/shared/screens/EventQRScanner";
 import ConnectionProfileScreen from "@/shared/screens/ConnectionProfileScreen";
-import CreatePostScreen from "@/shared/screens/CreatePost";
 import BankAccountsScreen from "@/shared/screens/BankAccounts";
 import OnlineGivingScreen from "@/shared/screens/OnlineGiving";
 import PledgesAndDonationsScreen from "@/shared/screens/Pledges";
@@ -230,13 +229,6 @@ export default function AppNavigator() {
             name="ConnectionProfile"
             component={
               ConnectionProfileScreen
-            }
-          />
-
-          <Stack.Screen
-            name="CreatePost"
-            component={
-              CreatePostScreen
             }
           />
 

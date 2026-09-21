@@ -1,5 +1,4 @@
 import {
-  Image,
   ScrollView,
   Share,
   StyleSheet,
@@ -7,6 +6,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { Image } from "expo-image";
 
 import {
   ChevronLeft,
@@ -139,6 +140,7 @@ export default function ModernDevotionalDetailScreen({
         <View>
           {devotion.mediaUrl ? (
             <Image
+              cachePolicy="memory-disk"
               source={{
                 uri: devotion.mediaUrl,
               }}

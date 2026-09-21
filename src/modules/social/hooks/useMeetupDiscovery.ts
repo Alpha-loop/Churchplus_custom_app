@@ -67,6 +67,8 @@ export default function useMeetupDiscovery() {
             token
           );
 
+        console.log("MEETUP DISCOVERY DATA:", data);
+
         setCandidates(
           data || []
         );
@@ -81,6 +83,8 @@ export default function useMeetupDiscovery() {
         setLoading(false);
       }
     };
+
+    console.log('candidates', candidates);
 
   useEffect(() => {
     loadCandidates();
