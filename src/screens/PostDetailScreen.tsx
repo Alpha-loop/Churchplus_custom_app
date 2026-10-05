@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 import {
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +19,8 @@ import {
   MessageCircle,
   Share2,
   Send,
+  NotebookPen,
+  MoreHorizontal,
 } from "lucide-react-native";
 
 import useFeedDetails from "@/modules/feedDetails/hooks/useFeedDetails";
@@ -28,6 +32,14 @@ import { formatDevotionalDate } from "../screenUtils/formatDevotionalDate";
 import { useTheme } from "@/theme/ThemeContext";
 
 import useRequireAuth from "@/modules/auth/hooks/useRequireAuth";
+
+import useNotes from "@/modules/notes/hooks/useNotes";
+
+import useModeration from "@/modules/moderation/hooks/useModeration";
+
+import NoteEditorSheet, {
+  NoteEditorHandle,
+} from "../components/notes/NoteEditorSheet";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -71,6 +83,68 @@ export default function ModernPostDetailScreen({
   const insets = useSafeAreaInsets();
 
   const { feed } = route.params;
+
+  const { addNote } = useNotes();
+
+  const {
+    canModeratePost,
+    showPostMenu,
+  } = useModeration();
+
+  const noteEditorRef =
+    useRef<NoteEditorHandle>(
+      null
+    );
+
+  // Label is a short snippet of the post itself — a post has no
+  // title of its own, and "Post" alone would make every note from
+  // this screen indistinguishable in My Notes.
+  const handleAddNote = () =>
+    requireAuth(
+      () => {
+        const body = (
+          feed.content ?? ""
+        )
+          .replace(/\s+/g, " ")
+          .trim();
+
+        const label = body
+          ? `Post — ${body.slice(
+              0,
+              40
+            )}${
+              body.length > 40
+                ? "…"
+                : ""
+            }`
+          : "Community post";
+
+        noteEditorRef.current?.open(
+          {
+            contextLabel: label,
+
+            onSave: content =>
+              addNote(
+                content,
+                "community",
+                String(feed.postId),
+                label,
+                {
+                  name: "FeedsDetail",
+
+                  params: {
+                    feed,
+                  },
+                }
+              ),
+          }
+        );
+      },
+      {
+        message:
+          "Sign in to save notes.",
+      }
+    );
 
   const fullProfile = useChurchStore(
     state => state.fullProfile
@@ -136,9 +210,17 @@ export default function ModernPostDetailScreen({
           Post Details
         </Text>
 
-        <View
-          style={{ width: 22 }}
-        />
+        <TouchableOpacity
+          onPress={
+            handleAddNote
+          }
+          hitSlop={8}
+        >
+          <NotebookPen
+            size={20}
+            color={colors.textPrimary}
+          />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -220,6 +302,27 @@ export default function ModernPostDetailScreen({
                 )}
               </Text>
             </View>
+
+            {canModeratePost(feed) ? (
+              <TouchableOpacity
+                onPress={() =>
+                  // Once the author is blocked there's nothing left
+                  // to look at here, so leave the screen.
+                  showPostMenu(
+                    feed,
+                    () =>
+                      navigation.goBack()
+                  )
+                }
+                hitSlop={10}
+                accessibilityLabel="Post options"
+              >
+                <MoreHorizontal
+                  size={20}
+                  color={colors.textMuted}
+                />
+              </TouchableOpacity>
+            ) : null}
           </View>
 
           <Text
@@ -517,6 +620,10 @@ export default function ModernPostDetailScreen({
           />
         </TouchableOpacity>
       </View>
+
+      <NoteEditorSheet
+        ref={noteEditorRef}
+      />
     </KeyboardAvoidingView>
   );
 }

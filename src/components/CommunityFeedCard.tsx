@@ -7,7 +7,11 @@ import {
 
 import { Image } from "expo-image";
 
-import { Heart, MessageCircle } from "lucide-react-native";
+import {
+  Heart,
+  MessageCircle,
+  MoreHorizontal,
+} from "lucide-react-native";
 
 import { formatDevotionalDate } from "../screenUtils/formatDevotionalDate";
 
@@ -21,6 +25,11 @@ interface Props {
   onPress: () => void;
 
   onLike: () => void;
+
+  // Opens the report/block menu. Only passed for user-generated
+  // posts by someone else, so the button doesn't render at all on
+  // the church's own announcements or on the person's own posts.
+  onMore?: () => void;
 }
 
 const getPosterName = (
@@ -55,6 +64,7 @@ export default function CommunityFeedCard({
   churchName,
   onPress,
   onLike,
+  onMore,
 }: Props) {
   const { colors } = useTheme();
 
@@ -155,6 +165,19 @@ export default function CommunityFeedCard({
             </Text>
           </View>
         </View>
+
+        {onMore ? (
+          <TouchableOpacity
+            onPress={onMore}
+            hitSlop={10}
+            accessibilityLabel="Post options"
+          >
+            <MoreHorizontal
+              size={20}
+              color={colors.textMuted}
+            />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <TouchableOpacity

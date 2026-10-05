@@ -1,4 +1,7 @@
+import { useRef } from "react";
+
 import {
+  ActivityIndicator,
   ScrollView,
   Share,
   StyleSheet,
@@ -13,9 +16,25 @@ import {
   ChevronLeft,
   Bookmark,
   Share2,
+  NotebookPen,
+  Gift,
 } from "lucide-react-native";
 
 import useSavedDevotionals from "@/modules/devotional/hooks/useSavedDevotionals";
+
+import { getDevotionalId } from "@/modules/devotional/utils/devotionalId";
+
+import useNotes from "@/modules/notes/hooks/useNotes";
+
+import useGiveAction from "@/modules/giving/hooks/useGiveAction";
+
+import GiveFundSheet from "../components/giving/GiveFundSheet";
+
+import useRequireAuth from "@/modules/auth/hooks/useRequireAuth";
+
+import NoteEditorSheet, {
+  NoteEditorHandle,
+} from "../components/notes/NoteEditorSheet";
 
 import { formatDevotionalDate } from "../screenUtils/formatDevotionalDate";
 
@@ -43,9 +62,66 @@ export default function ModernDevotionalDetailScreen({
   } =
     useSavedDevotionals();
 
+  // devotion.id doesn't exist in the API response (it's postId) —
+  // reading it gave undefined for every devotional, so bookmarking
+  // one bookmarked all of them. See devotionalId.ts.
+  const devotionId =
+    getDevotionalId(devotion);
+
   const saved = isSaved(
-    devotion.id
+    devotionId
   );
+
+  const { addNote } = useNotes();
+
+  const {
+    give,
+    loading: giveLoading,
+    funds: giveFunds,
+    sheetRef: giveSheetRef,
+    openFund: openGiveFund,
+  } = useGiveAction();
+
+  const { requireAuth } =
+    useRequireAuth();
+
+  const noteEditorRef =
+    useRef<NoteEditorHandle>(
+      null
+    );
+
+  // Notes are saved to the backend against a real person, so a
+  // guest has nowhere to save one — gated like every other write
+  // action rather than opening an editor that can't save.
+  const handleAddNote = () =>
+    requireAuth(
+      () =>
+        noteEditorRef.current?.open(
+          {
+            contextLabel:
+              devotion.title,
+
+            onSave: content =>
+              addNote(
+                content,
+                "devotional",
+                devotionId,
+                devotion.title,
+                {
+                  name: "TodayDevotional",
+
+                  params: {
+                    data: devotion,
+                  },
+                }
+              ),
+          }
+        ),
+      {
+        message:
+          "Sign in to save notes.",
+      }
+    );
 
   const onShare = async () => {
     await Share.share({
@@ -96,10 +172,20 @@ export default function ModernDevotionalDetailScreen({
           }
         >
           <TouchableOpacity
+            onPress={
+              handleAddNote
+            }
+            hitSlop={8}
+          >
+            <NotebookPen
+              size={20}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={() =>
-              toggleSaved(
-                devotion.id
-              )
+              toggleSaved(devotionId)
             }
             hitSlop={8}
           >
@@ -253,6 +339,41 @@ export default function ModernDevotionalDetailScreen({
 
           <TouchableOpacity
             activeOpacity={0.85}
+            onPress={give}
+            disabled={giveLoading}
+            accessibilityRole="button"
+            accessibilityLabel="Give"
+            style={[
+              styles.giveButton,
+              { backgroundColor: colors.primaryMuted },
+            ]}
+          >
+            {giveLoading ? (
+              <ActivityIndicator
+                size="small"
+                color={colors.primary}
+              />
+            ) : (
+              <Gift
+                size={16}
+                color={colors.primary}
+              />
+            )}
+
+            <Text
+              style={[
+                styles.shareButtonText,
+                { color: colors.primary },
+              ]}
+            >
+              {giveLoading
+                ? "Loading..."
+                : "Give"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
             onPress={onShare}
             style={[
               styles.shareButton,
@@ -277,9 +398,7 @@ export default function ModernDevotionalDetailScreen({
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() =>
-              toggleSaved(
-                devotion.id
-              )
+              toggleSaved(devotionId)
             }
             style={[
               styles.saveButton,
@@ -311,6 +430,16 @@ export default function ModernDevotionalDetailScreen({
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <NoteEditorSheet
+        ref={noteEditorRef}
+      />
+
+      <GiveFundSheet
+        ref={giveSheetRef}
+        funds={giveFunds}
+        onSelect={openGiveFund}
+      />
     </View>
   );
 }
@@ -443,7 +572,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 
-  shareButton: {
+  giveButton: {
     flexDirection: "row",
 
     justifyContent: "center",
@@ -457,6 +586,22 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
 
     marginTop: 24,
+  },
+
+  shareButton: {
+    flexDirection: "row",
+
+    justifyContent: "center",
+
+    alignItems: "center",
+
+    gap: 8,
+
+    borderRadius: 24,
+
+    paddingVertical: 14,
+
+    marginTop: 12,
   },
 
   shareButtonText: {

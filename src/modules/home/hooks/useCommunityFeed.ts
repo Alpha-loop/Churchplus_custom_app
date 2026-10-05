@@ -17,6 +17,13 @@ import { useChurchStore } from "@/store/churchStore";
 
 import { useAuthStore } from "@/store/authStore";
 
+import {
+  useBlockedIds,
+  useBlockedUsersStore,
+} from "@/modules/moderation/store/blockedUsersStore";
+
+import { isFromBlockedAuthor } from "@/modules/moderation/utils/postAuthor";
+
 // Merges TWO genuinely different feed sources into one list, per
 // what was actually asked for — users should see and interact
 // with everything in one place, not just one source:
@@ -131,9 +138,24 @@ export default function useCommunityFeed() {
         _source: "social",
       }));
 
+      // Read straight from the store rather than the hook's
+      // closure: this runs after an await, and a block made in the
+      // meantime must still apply.
+      const blockedNow =
+        (userId
+          ? useBlockedUsersStore.getState()
+              .blockedByUser[userId]
+          : undefined) ?? [];
+
       setFeeds([
         ...adminFeeds,
-        ...socialFeeds,
+        ...socialFeeds.filter(
+          (item: any) =>
+            !isFromBlockedAuthor(
+              item,
+              blockedNow
+            )
+        ),
       ]);
     } catch (error) {
       console.log(
@@ -148,6 +170,30 @@ export default function useCommunityFeed() {
   useEffect(() => {
     loadFeeds();
   }, [tenantId, userId]);
+
+  // Blocking someone should make their posts vanish right away, not
+  // on the next refresh. This filters the hook's own state (not a
+  // copy at render time) on purpose: handleLike(item, index) below
+  // addresses posts by array position, so the list the screen maps
+  // over has to be the same array that state holds.
+  const blockedIds =
+    useBlockedIds(userId);
+
+  useEffect(() => {
+    if (blockedIds.length === 0) {
+      return;
+    }
+
+    setFeeds(prev =>
+      prev.filter(
+        item =>
+          !isFromBlockedAuthor(
+            item,
+            blockedIds
+          )
+      )
+    );
+  }, [blockedIds]);
 
   const onRefresh = async () => {
     setRefreshing(true);

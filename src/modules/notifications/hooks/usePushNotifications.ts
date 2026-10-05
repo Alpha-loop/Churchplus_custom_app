@@ -22,8 +22,13 @@ import { useChurchStore } from "@/store/churchStore";
 // canAccessMain branch — there's no reason to prompt for
 // notification permission before someone has even signed in.
 export default function usePushNotifications() {
-  const userId = useAuthStore(
-    state => state.user?.userId
+  // Was state.user?.userId — confirmed from a real login
+  // response that this backend's personId is a genuinely
+  // different value from userId, and SaveDeviceToken's schema
+  // names this field personID specifically. Same fix as
+  // useNotes.ts, for the same underlying confusion.
+  const personId = useAuthStore(
+    state => state.user?.personId
   );
 
   const accessToken = useAuthStore(
@@ -48,7 +53,7 @@ export default function usePushNotifications() {
 
   useEffect(() => {
     if (
-      !userId ||
+      !personId ||
       hasRegistered.current
     ) {
       return;
@@ -63,7 +68,7 @@ export default function usePushNotifications() {
         }
 
         saveDeviceToken(
-          userId,
+          personId,
           token,
           tenantId,
           accessToken
@@ -101,5 +106,5 @@ export default function usePushNotifications() {
 
       responseListener.current?.remove();
     };
-  }, [userId]);
+  }, [personId]);
 }

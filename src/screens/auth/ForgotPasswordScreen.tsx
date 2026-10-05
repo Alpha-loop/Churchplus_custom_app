@@ -57,7 +57,7 @@ export default function ModernForgotPasswordScreen({
         >
           <ChevronLeft
             size={22}
-            color="#1D3AA8"
+            color="#28166f"
           />
         </TouchableOpacity>
 
@@ -87,7 +87,7 @@ export default function ModernForgotPasswordScreen({
         >
           <KeyRound
             size={24}
-            color="#1D3AA8"
+            color="#28166f"
           />
         </View>
 
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
 
     fontWeight: "700",
 
-    color: "#1D3AA8",
+    color: "#28166f",
   },
 
   scroll: {
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
 
     gap: 8,
 
-    backgroundColor: "#1D3AA8",
+    backgroundColor: "#28166f",
 
     borderRadius: 12,
 

@@ -12,6 +12,8 @@ import { ChevronLeft, Clock } from "lucide-react-native";
 
 import useDevotionalLibrary from "@/modules/devotional/hooks/useDevotionalLibrary";
 
+import { getDevotionalId } from "@/modules/devotional/utils/devotionalId";
+
 import { Devotional } from "@/modules/devotional/types/devotional.types";
 
 import { estimateReadTime } from "../screenUtils/estimateReadTime";
@@ -240,9 +242,9 @@ export default function ModernDevotionalsScreen({
             {previous.map(
               devotion => (
                 <TouchableOpacity
-                  key={
-                    devotion.id
-                  }
+                  key={getDevotionalId(
+                    devotion
+                  )}
                   activeOpacity={0.85}
                   onPress={() =>
                     openDevotional(

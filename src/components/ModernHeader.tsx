@@ -91,6 +91,7 @@ export default function ModernHeader({
     switch (route) {
       case "DevotionalLibrary":
       case "CommunityGroups":
+      case "AboutChurch":
         // Content browsing — open to guests, same "read is open,
         // write is gated" rule requireAuth() enforces everywhere
         // else in this app.
@@ -106,6 +107,7 @@ export default function ModernHeader({
       case "Settings":
       case "Messages":
       case "Notifications":
+      case "MyNotes":
         // Account-specific — a guest has no real profile,
         // messages, or notifications to view. Was navigating
         // straight there for a guest too, landing on a confusing
@@ -117,13 +119,23 @@ export default function ModernHeader({
         // (donation receipts, prayer replies, mutual-connection
         // counts, unread state — none of which exist anywhere in
         // this codebase).
+        // "MyNotes".toLowerCase() would read "your mynotes" — an
+        // explicit wording per item instead of deriving it.
         requireAuth(
           () =>
             navigation.navigate(
               route
             ),
           {
-            message: `Sign in to view your ${route.toLowerCase()}.`,
+            message: `Sign in to view your ${
+              ({
+                MyNotes: "notes",
+              } as Record<
+                string,
+                string
+              >)[route] ??
+              route.toLowerCase()
+            }.`,
           }
         );
 
@@ -193,10 +205,8 @@ export default function ModernHeader({
         return;
 
       case "BibleStudy":
-        // TODO: no real destination yet.
-        Alert.alert(
-          "Coming Soon",
-          "This isn't available yet."
+        navigation.navigate(
+          "Bible"
         );
 
         return;
@@ -248,15 +258,8 @@ export default function ModernHeader({
 
       <TouchableOpacity
         onPress={() =>
-          requireAuth(
-            () =>
-              navigation.navigate(
-                "Profile"
-              ),
-            {
-              message:
-                "Sign in to view your profile.",
-            }
+          navigation.navigate(
+            "AboutChurch"
           )
         }
         hitSlop={10}

@@ -1,5 +1,7 @@
 import "react-native-gesture-handler";
 
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 import { useEffect, useState } from "react";
 
 import { NavigationContainer } from "@react-navigation/native";
@@ -7,6 +9,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { Provider as PaperProvider } from "react-native-paper";
+
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 import { StatusBar } from "expo-status-bar";
 
@@ -218,17 +222,23 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <PaperProvider>
-            <ThemedStatusBar />
+    <GestureHandlerRootView
+      style={{ flex: 1 }}
+    >
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <PaperProvider>
+              <BottomSheetModalProvider>
+                <ThemedStatusBar />
 
-            <AppNavigator />
-          </PaperProvider>
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </ThemeProvider>
+                <AppNavigator />
+              </BottomSheetModalProvider>
+            </PaperProvider>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 

@@ -126,9 +126,10 @@ export default function ModernEventDetailsScreen({
         }
       >
         <View
-          style={
-            styles.heroWrap
-          }
+          style={[
+            styles.heroWrap,
+            { backgroundColor: colors.placeholder },
+          ]}
         >
           {event.primaryImageUrl ? (
             <Image
@@ -136,13 +137,23 @@ export default function ModernEventDetailsScreen({
               source={{
                 uri: event.primaryImageUrl,
               }}
+              // Was defaulting to contentFit="cover" inside a
+              // fixed 220px box — fine for a wide landscape
+              // photo, but event posters/flyers are often tall,
+              // portrait-oriented graphics with text near the
+              // edges (title, date, speaker name baked into the
+              // image itself). "cover" crops to fill the box,
+              // which was cutting that text off. "contain" shows
+              // the whole poster; the taller box below gives it
+              // real room instead of squeezing it flat.
+              contentFit="contain"
               style={
                 styles.hero
               }
             />
           ) : (
             <EventImagePlaceholder
-              height={220}
+              height={320}
             />
           )}
 
@@ -439,12 +450,14 @@ const styles = StyleSheet.create({
 
   heroWrap: {
     position: "relative",
+
+    overflow: "hidden",
   },
 
   hero: {
     width: "100%",
 
-    height: 220,
+    height: 320,
   },
 
   heroTopRow: {

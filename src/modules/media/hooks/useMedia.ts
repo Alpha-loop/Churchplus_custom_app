@@ -40,10 +40,6 @@ export default function useMedia() {
 
   
 
-  useEffect(() => {
-    loadVideos();
-  }, []);
-
   const loadVideos =
     async () => {
 
@@ -52,17 +48,24 @@ export default function useMedia() {
         return;
       }
 
+      // Was matching item.name against "channel id" — same bug
+      // as useHome.ts's loadVideos: the real entry's name is
+      // "YouTube", not "channel id", so this never matched and
+      // always fell through to "not found", regardless of what
+      // was actually configured.
       const social = fullProfile.churchSocialMedia.find(
         (item: any) =>
-          item.name?.toLowerCase().includes("channel id")
+          item.name?.toLowerCase().includes("youtube")
       );
 
       if (!social) {
-        console.log("Channel ID not found.");
+        console.log("YouTube channel not configured.");
         setChurchMedia([]);
         return;
       }
 
+      // The channel ID itself is stored under "url" — confusingly
+      // named, but confirmed from the real response shape.
       const channelId =
         social.url
 
@@ -101,6 +104,21 @@ export default function useMedia() {
         );
       }
     };
+
+  // Was useEffect(() => { loadVideos(); }, []) — an empty
+  // dependency array runs this exactly once, on mount, and
+  // captures whatever fullProfile was AT THAT INSTANT. fullProfile
+  // is only populated later, once useHome.ts's loadData() finishes
+  // its ministry-profile fetch elsewhere — so if the Media tab is
+  // opened before that resolves, this ran once against an empty
+  // fullProfile, logged "No ministry profile yet," and never ran
+  // again even after fullProfile actually loaded (the empty array
+  // means it never re-fires, no matter what later changes).
+  // useHome.ts's own identical-looking effect already uses
+  // [fullProfile] correctly — this one just didn't match it.
+  useEffect(() => {
+    loadVideos();
+  }, [fullProfile]);
 
   /**
    * Audio endpoint not ready yet

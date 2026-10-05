@@ -1,4 +1,7 @@
+import { useEffect } from "react";
+
 import {
+  AccessibilityInfo,
   ActivityIndicator,
   StyleSheet,
   Text,
@@ -13,9 +16,14 @@ import {
   UserPlus,
   ChevronRight,
   Users,
+  CircleCheck,
+  CircleAlert,
+  X,
 } from "lucide-react-native";
 
-import useMeetupDiscovery from "@/modules/social/hooks/useMeetupDiscovery";
+import useMeetupDiscovery, {
+  RequestFeedback,
+} from "@/modules/social/hooks/useMeetupDiscovery";
 
 import { useTheme } from "@/theme/ThemeContext";
 
@@ -42,6 +50,77 @@ function PersonPhoto({
   );
 }
 
+// Result of the last friend request, shown over the top of the
+// screen so it never shifts the card or buttons around. Tap to
+// dismiss; the hook also clears it on a timer.
+function StatusBanner({
+  feedback,
+  onDismiss,
+}: {
+  feedback: NonNullable<RequestFeedback>;
+  onDismiss: () => void;
+}) {
+  const { colors } = useTheme();
+
+  const isError =
+    feedback.type === "error";
+
+  const accent = isError
+    ? colors.danger
+    : colors.primary;
+
+  const Icon = isError
+    ? CircleAlert
+    : CircleCheck;
+
+  // accessibilityLiveRegion only exists on Android; this is what
+  // makes VoiceOver on iOS read the result out as well.
+  useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      feedback.message
+    );
+  }, [feedback]);
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={onDismiss}
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
+      accessibilityHint="Double tap to dismiss"
+      style={[
+        styles.banner,
+        {
+          backgroundColor: isError
+            ? colors.dangerMuted
+            : colors.primaryMuted,
+
+          borderColor: accent,
+        },
+      ]}
+    >
+      <Icon
+        size={18}
+        color={accent}
+      />
+
+      <Text
+        style={[
+          styles.bannerText,
+          { color: colors.textPrimary },
+        ]}
+      >
+        {feedback.message}
+      </Text>
+
+      <X
+        size={16}
+        color={colors.textSecondary}
+      />
+    </TouchableOpacity>
+  );
+}
+
 export default function ModernSocialsScreen() {
   const { colors } = useTheme();
 
@@ -52,8 +131,20 @@ export default function ModernSocialsScreen() {
     hasMore,
     skip,
     sendRequest,
+    sending,
+    feedback,
+    dismissFeedback,
   } =
     useMeetupDiscovery();
+
+  const banner = feedback ? (
+    <StatusBanner
+      feedback={feedback}
+      onDismiss={
+        dismissFeedback
+      }
+    />
+  ) : null;
 
   
 
@@ -81,6 +172,10 @@ export default function ModernSocialsScreen() {
           { backgroundColor: colors.background },
         ]}
       >
+        {/* Sending to the last member lands here immediately, so
+            the confirmation has to be shown in this view too. */}
+        {banner}
+
         <Text
           style={[
             styles.emptyText,
@@ -109,6 +204,8 @@ export default function ModernSocialsScreen() {
         { backgroundColor: colors.background },
       ]}
     >
+      {banner}
+
       {upcoming.length > 0 ? (
         <View
           style={[
@@ -256,12 +353,15 @@ export default function ModernSocialsScreen() {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={skip}
+          disabled={sending}
           style={[
             styles.skipButton,
             {
               backgroundColor: colors.surface,
               borderColor: colors.border,
             },
+            sending &&
+              styles.requestButtonDisabled,
           ]}
         >
           <ChevronRight
@@ -282,7 +382,8 @@ export default function ModernSocialsScreen() {
         <TouchableOpacity
           activeOpacity={0.85}
           disabled={
-            alreadyRequested
+            alreadyRequested ||
+            sending
           }
           onPress={
             sendRequest
@@ -292,19 +393,30 @@ export default function ModernSocialsScreen() {
             { backgroundColor: colors.primary },
             alreadyRequested &&
               styles.requestButtonDisabled,
+            sending &&
+              styles.requestButtonSending,
           ]}
         >
-          <UserPlus
-            size={18}
-            color="#FFFFFF"
-          />
+          {sending ? (
+            <ActivityIndicator
+              size="small"
+              color="#FFFFFF"
+            />
+          ) : (
+            <UserPlus
+              size={18}
+              color="#FFFFFF"
+            />
+          )}
 
           <Text
             style={
               styles.requestText
             }
           >
-            {alreadyRequested
+            {sending
+              ? "Sending..."
+              : alreadyRequested
               ? "Request Sent"
               : "Send Friend Request"}
           </Text>
@@ -487,6 +599,47 @@ const styles = StyleSheet.create({
 
   requestButtonDisabled: {
     opacity: 0.5,
+  },
+
+  // Busy, not unavailable — dimmed less than a disabled button.
+  requestButtonSending: {
+    opacity: 0.85,
+  },
+
+  banner: {
+    position: "absolute",
+
+    top: 8,
+
+    left: 16,
+
+    right: 16,
+
+    zIndex: 10,
+
+    flexDirection: "row",
+
+    alignItems: "center",
+
+    gap: 10,
+
+    borderRadius: 14,
+
+    borderWidth: 1,
+
+    paddingHorizontal: 14,
+
+    paddingVertical: 12,
+  },
+
+  bannerText: {
+    flex: 1,
+
+    fontSize: 13,
+
+    fontWeight: "600",
+
+    lineHeight: 18,
   },
 
   requestText: {

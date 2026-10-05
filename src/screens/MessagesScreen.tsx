@@ -23,6 +23,8 @@ import useMessages from "@/modules/social/hooks/useMessages";
 
 import { useAuthStore } from "@/store/authStore";
 
+import { useBlockedIds } from "@/modules/moderation/store/blockedUsersStore";
+
 import { useTheme } from "@/theme/ThemeContext";
 
 export default function ModernMessagesScreen({
@@ -40,6 +42,10 @@ export default function ModernMessagesScreen({
     useAuthStore(
       state => state.user?.userId
     );
+
+  const blockedIds = useBlockedIds(
+    currentUserId
+  );
 
   const [
     searchText,
@@ -76,6 +82,18 @@ export default function ModernMessagesScreen({
     () =>
       messages.filter(
         (item: any) => {
+          // A blocked person's conversations disappear from the
+          // inbox — filtered here because the backend isn't
+          // guaranteed to drop them from this list itself.
+          if (
+            blockedIds.includes(
+              getOtherUser(item)
+                ?.id
+            )
+          ) {
+            return false;
+          }
+
           if (
             unreadOnly &&
             !(
@@ -105,6 +123,7 @@ export default function ModernMessagesScreen({
       searchText,
       unreadOnly,
       currentUserId,
+      blockedIds,
     ]
   );
 

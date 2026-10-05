@@ -104,10 +104,13 @@ export default function ModernOnboardingScreen({
         }
       >
         <Image
-              cachePolicy="memory-disk"
-          source={{
-            uri: item.image,
-          }}
+          cachePolicy="memory-disk"
+          // Was source={{ require(item.image) }} — not valid;
+          // wrapping require() in an object literal like that
+          // doesn't produce a usable source. item.image is
+          // already the required asset reference now (see
+          // onboardingSlides.ts), so it's used directly.
+          source={item.image}
           style={styles.image}
         />
 
@@ -119,7 +122,7 @@ export default function ModernOnboardingScreen({
             "users" ? (
               <Users
                 size={14}
-                color="#1D3AA8"
+                color="#28166f"
               />
             ) : null}
 
@@ -141,7 +144,7 @@ export default function ModernOnboardingScreen({
           >
             <HandHeart
               size={26}
-              color="#1D3AA8"
+              color="#28166f"
             />
           </View>
         ) : null}
@@ -402,7 +405,7 @@ const styles = StyleSheet.create({
 
     fontWeight: "700",
 
-    color: "#1D3AA8",
+    color: "#28166f",
   },
 
   centerIconWrap: {
@@ -474,7 +477,7 @@ const styles = StyleSheet.create({
   activeDot: {
     width: 22,
 
-    backgroundColor: "#1D3AA8",
+    backgroundColor: "#28166f",
   },
 
   bottomArea: {
@@ -494,7 +497,7 @@ const styles = StyleSheet.create({
 
     gap: 10,
 
-    backgroundColor: "#1D3AA8",
+    backgroundColor: "#28166f",
 
     borderRadius: 26,
 

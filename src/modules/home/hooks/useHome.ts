@@ -112,20 +112,28 @@ export default function useHome() {
       return;
     }
 
+    // Was matching item.name against "channel id" — the real
+    // entry's name is "YouTube" (confirmed from the actual
+    // churchSocialMedia response: [{ name: "YouTube", url:
+    // "UC6QB8..." }]), so this never matched and silently fell
+    // through to the "not found" branch every time, regardless
+    // of what was actually configured.
     const social = fullProfile.churchSocialMedia.find(
       (item: any) =>
-        item.name?.toLowerCase().includes("channel id")
+        item.name?.toLowerCase().includes("youtube")
     );
 
     console.log(social)
 
     if (!social) {
-      console.log("Channel ID not found.");
+      console.log("YouTube channel not configured.");
       setVideos([]);
       return;
     }
 
-    // Replace "value" with the correct property once we inspect your API.
+    // The channel ID itself is stored under "url" in this data
+    // (confirmed from the real response) — confusingly named,
+    // but that's the field that actually holds it.
     const channelId =
       social.url
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -17,14 +17,47 @@ export default function useSavedDevotionals() {
     setSavedIds,
   ] = useState<string[]>([]);
 
+  // Always the latest list, updated synchronously. toggleSaved used
+  // to build the next list from `savedIds` as captured by the render
+  // that created it, so two toggles before React re-rendered (a quick
+  // double-tap) both started from the same stale list — the second
+  // one overwrote the first, or saved a duplicate.
+  const savedIdsRef = useRef<
+    string[]
+  >([]);
+
+  const commit = (
+    ids: string[]
+  ) => {
+    savedIdsRef.current = ids;
+
+    setSavedIds(ids);
+  };
+
   useEffect(() => {
     AsyncStorage.getItem(
       STORAGE_KEY
     )
       .then(raw => {
         if (raw) {
-          setSavedIds(
-            JSON.parse(raw)
+          // Earlier versions bookmarked by devotion.id, which
+          // doesn't exist in the API response, so what's on disk
+          // can contain `null` entries. They identify nothing —
+          // drop them (and any duplicates) rather than carry them.
+          const ids: unknown[] =
+            JSON.parse(raw);
+
+          commit(
+            Array.from(
+              new Set(
+                ids.filter(
+                  (id): id is string =>
+                    typeof id ===
+                      "string" &&
+                    id !== ""
+                )
+              )
+            )
           );
         }
       })
@@ -38,14 +71,18 @@ export default function useSavedDevotionals() {
   const toggleSaved = async (
     id: string
   ) => {
-    const next = isSaved(id)
-      ? savedIds.filter(
-          savedId =>
-            savedId !== id
-        )
-      : [...savedIds, id];
+    const current =
+      savedIdsRef.current;
 
-    setSavedIds(next);
+    const next =
+      current.includes(id)
+        ? current.filter(
+            savedId =>
+              savedId !== id
+          )
+        : [...current, id];
+
+    commit(next);
 
     try {
       await AsyncStorage.setItem(

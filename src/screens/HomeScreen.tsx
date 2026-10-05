@@ -242,11 +242,19 @@ export default function ModernHomeScreen({
                   feed: feeds[0],
                 }}
                 onDevotionPress={() => {
-                  // TODO: mirror Classic's navigation.navigate("TodayDevotional", { data: devotional })
-                  // once a Modern devotional detail screen exists.
-                  console.log(
-                    "Devotion pressed",
-                    devotional
+                  // Was a console.log stub from before the Modern
+                  // devotional detail screen existed — tapping the
+                  // card on Home did nothing. Same route and param
+                  // the devotionals list already uses.
+                  if (!devotional) {
+                    return;
+                  }
+
+                  navigation.navigate(
+                    "TodayDevotional",
+                    {
+                      data: devotional,
+                    }
                   );
                 }}
                 onMediaPress={() => {

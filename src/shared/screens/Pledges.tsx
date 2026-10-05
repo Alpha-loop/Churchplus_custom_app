@@ -20,14 +20,14 @@ from "@/modules/giving/components/ProfileRequiredModal";
 import usePledgesAndDonations
 from "@/modules/giving/hooks/usePledgesAndDonations";
 
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function PledgesAndDonationsScreen({
   navigation,
 }: any) {
   const {
     actions,
-    pledgeUrl,
+    urlFor,
   } =
     usePledgesAndDonations();
 
@@ -77,11 +77,7 @@ export default function PledgesAndDonationsScreen({
                         "@/assets/img/pledgeballs.png"
                         )
                 }
-                onPress={() => {
-                  if (!pledgeUrl) {
-                    return;
-                  }
-
+                onPress={() =>
                   navigation.navigate(
                     "ExternalUrl",
                     {
@@ -90,13 +86,33 @@ export default function PledgesAndDonationsScreen({
                           ? "Make A Pledge"
                           : "Redeem A Pledge",
 
-                      uri: pledgeUrl,
+                      // Each action opens its OWN page; both
+                      // used to open the make-a-pledge one.
+                      uri: urlFor(
+                        action.type
+                      ),
                     }
-                  );
-                }}
+                  )
+                }
                 />
             )
             )}
+
+            {actions.length === 0 ? (
+              <Text
+                style={{
+                  textAlign: "center",
+
+                  marginTop: 40,
+
+                  color: "#8E8E93",
+                }}
+              >
+                Pledges haven't been
+                set up for this church
+                yet.
+              </Text>
+            ) : null}
         </View>
       </AppScreenLayout>
 

@@ -27,7 +27,7 @@ export const onboardingSlides: OnboardingSlide[] =
       id: "1",
 
       image:
-        "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?q=80&w=1200",
+        require("../../assets/kv_asset2.jpeg"),
 
       title: "Grow in Faith",
 
@@ -39,7 +39,7 @@ export const onboardingSlides: OnboardingSlide[] =
       id: "2",
 
       image:
-        "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=1200",
+        require("../../assets/kv_assets3.jpeg"),
 
       tag: {
         icon: "users",
@@ -57,7 +57,7 @@ export const onboardingSlides: OnboardingSlide[] =
       id: "3",
 
       image:
-        "https://images.unsplash.com/photo-1602522752887-4c0f5f3a4d5b?q=80&w=1200",
+        require("../../assets/kv_asset4.jpeg"),
 
       centerIcon:
         "heart-hand",

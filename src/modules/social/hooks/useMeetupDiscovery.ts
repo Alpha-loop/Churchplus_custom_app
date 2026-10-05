@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -11,6 +12,65 @@ import {
 import { useChurchStore } from "@/store/churchStore";
 
 import { useAuthStore } from "@/store/authStore";
+
+export type RequestFeedback = {
+  type: "success" | "error";
+
+  message: string;
+} | null;
+
+// Turns a failed friend-request call into something a person can
+// act on. The server's own message wins when there is one (it knows
+// the real reason — e.g. a request that already exists); otherwise
+// the HTTP status / network state says what kind of failure it was.
+// Nothing here guesses at a cause the response doesn't actually show.
+const getFriendRequestErrorMessage = (
+  error: any
+): string => {
+  const data = error?.response?.data;
+
+  if (
+    typeof data?.message === "string" &&
+    data.message.trim()
+  ) {
+    return data.message.trim();
+  }
+
+  // Plain-text bodies only — a long or HTML body (a gateway error
+  // page, say) is not something to show a person.
+  if (
+    typeof data === "string" &&
+    data.trim() &&
+    data.length <= 160 &&
+    !data.trim().startsWith("<")
+  ) {
+    return data.trim();
+  }
+
+  if (!error?.response) {
+    return error?.code ===
+      "ECONNABORTED"
+      ? "The request timed out. Please try again."
+      : "Couldn't reach the server. Check your internet connection and try again.";
+  }
+
+  const status =
+    error.response.status;
+
+  if (status === 401) {
+    return "Your session has expired. Please sign in again.";
+  }
+
+  if (status === 403) {
+    return "You don't have permission to send this request.";
+  }
+
+  if (status >= 500) {
+    return "Something went wrong on our side. Please try again in a moment.";
+  }
+
+  return "Couldn't send the friend request. Please try again.";
+};
 
 // Real data: getMeetupUsers() / GET
 // /portal/Socials/GetOrganisationSpecificConnectionGraph, mapped
@@ -50,6 +110,70 @@ export default function useMeetupDiscovery() {
     loading,
     setLoading,
   ] = useState(false);
+
+  // True while a friend request is in flight. The ref is what
+  // actually blocks a second tap: state updates are async, so two
+  // quick taps can both read sending === false before the first
+  // re-render lands.
+  const [
+    sending,
+    setSending,
+  ] = useState(false);
+
+  const sendingRef = useRef(false);
+
+  const [
+    feedback,
+    setFeedback,
+  ] = useState<RequestFeedback>(
+    null
+  );
+
+  const feedbackTimer = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  const clearFeedbackTimer = () => {
+    if (feedbackTimer.current) {
+      clearTimeout(
+        feedbackTimer.current
+      );
+
+      feedbackTimer.current = null;
+    }
+  };
+
+  const showFeedback = (
+    type: "success" | "error",
+    message: string
+  ) => {
+    clearFeedbackTimer();
+
+    setFeedback({
+      type,
+      message,
+    });
+
+    // Errors stay up longer — they're the ones that need reading.
+    feedbackTimer.current =
+      setTimeout(
+        () => setFeedback(null),
+        type === "success"
+          ? 3500
+          : 6000
+      );
+  };
+
+  const dismissFeedback = () => {
+    clearFeedbackTimer();
+
+    setFeedback(null);
+  };
+
+  useEffect(
+    () => clearFeedbackTimer,
+    []
+  );
 
   const loadCandidates =
     async () => {
@@ -109,26 +233,58 @@ export default function useMeetupDiscovery() {
 
   const sendRequest =
     async () => {
-      if (!current) {
+      if (
+        !current ||
+        sendingRef.current
+      ) {
         return;
       }
 
-      try {
-        await requestFriendship(
-          {
-            FriendRequesterID:
-              userId,
+      // Captured up front: everything below must refer to the
+      // person the request was actually sent to, even if the deck
+      // moves while the call is in flight.
+      const target = current;
 
-            FriendApproverID:
-              current.id,
-          },
-          token
-        );
+      const name =
+        target.fullName ||
+        "this member";
+
+      sendingRef.current = true;
+
+      setSending(true);
+
+      dismissFeedback();
+
+      try {
+        const response =
+          await requestFriendship(
+            {
+              FriendRequesterID:
+                userId,
+
+              FriendApproverID:
+                target.id,
+            },
+            token
+          );
+
+        // This backend answers { status, message, object }, and a
+        // 200 with status: false is still a failure — it used to be
+        // treated as success here, moving on as if it had worked.
+        if (response?.status === false) {
+          showFeedback(
+            "error",
+            response?.message ||
+              "The friend request couldn't be sent."
+          );
+
+          return;
+        }
 
         setCandidates(prev =>
           prev.map(item =>
             item.id ===
-            current.id
+            target.id
               ? {
                   ...item,
 
@@ -139,12 +295,31 @@ export default function useMeetupDiscovery() {
           )
         );
 
+        showFeedback(
+          "success",
+          `Friend request sent to ${name}.`
+        );
+
         skip();
-      } catch (error) {
+      } catch (error: any) {
         console.log(
           "SEND REQUEST ERROR:",
-          error
+          error?.response?.status,
+
+          error?.response?.data ??
+            error?.message
         );
+
+        showFeedback(
+          "error",
+          getFriendRequestErrorMessage(
+            error
+          )
+        );
+      } finally {
+        sendingRef.current = false;
+
+        setSending(false);
       }
     };
 
@@ -162,5 +337,11 @@ export default function useMeetupDiscovery() {
     skip,
 
     sendRequest,
+
+    sending,
+
+    feedback,
+
+    dismissFeedback,
   };
 }

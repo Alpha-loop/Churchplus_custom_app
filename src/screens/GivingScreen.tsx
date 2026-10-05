@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import {
   ActivityIndicator,
   ScrollView,
@@ -10,341 +8,443 @@ import {
 } from "react-native";
 
 import {
-  ChevronRight,
-  HandCoins,
+  ArrowUpRight,
+  Check,
+  Copy,
+  CreditCard,
+  Landmark,
+  Megaphone,
 } from "lucide-react-native";
 
-import useOnlineGiving from "@/modules/giving/hooks/useOnlineGiving";
+import useGiveAction from "@/modules/giving/hooks/useGiveAction";
 
-import EventImagePlaceholder from "../components/events/EventImagePlaceholder";
+import useCopyToClipboard from "@/modules/giving/hooks/useCopyToClipboard";
+
+import {
+  cleanText,
+  getPledgeLinks,
+  toBankAccounts,
+} from "@/modules/giving/utils/givingProfile";
+
+import GiveFundSheet from "../components/giving/GiveFundSheet";
+
+import { useChurchStore } from "@/store/churchStore";
 
 import { useTheme } from "@/theme/ThemeContext";
 
-const PRESET_AMOUNTS = [
-  50, 100, 250,
-];
+function GivingCard({
+  Icon,
+  title,
+  subtitle,
+  children,
+}: {
+  Icon: any;
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}) {
+  const { colors } = useTheme();
 
+  return (
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.surface },
+      ]}
+    >
+      <View
+        style={
+          styles.cardHeaderRow
+        }
+      >
+        <View
+          style={[
+            styles.cardIcon,
+            { backgroundColor: colors.primaryMuted },
+          ]}
+        >
+          <Icon
+            size={20}
+            color={colors.primary}
+          />
+        </View>
+
+        <View style={{ flex: 1 }}>
+          <Text
+            style={[
+              styles.cardTitle,
+              { color: colors.textPrimary },
+            ]}
+          >
+            {title}
+          </Text>
+
+          <Text
+            style={[
+              styles.cardSubtitle,
+              { color: colors.textSecondary },
+            ]}
+          >
+            {subtitle}
+          </Text>
+        </View>
+      </View>
+
+      {children}
+    </View>
+  );
+}
+
+// Everything on this screen comes from the church profile the app
+// already loaded at startup (/portal/Ministry/{tenantId}/profile):
+//   onlineDonations -> Give Online   (via useGiveAction)
+//   banks           -> Bank Transfer
+//   pledgePromiseUrl / pledgeDueUrl -> Pledges & Campaigns
+// A card with nothing to show is left out entirely rather than
+// rendered empty. Not shown: a personal "giving history / total"
+// summary — no endpoint for it exists, so any figure would be made up.
 export default function ModernGivingScreen({
   navigation,
 }: any) {
   const { colors } = useTheme();
 
-  const {
-    categories,
-    loading,
-  } = useOnlineGiving();
-
-  const [
-    selectedAmount,
-    setSelectedAmount,
-  ] = useState(
-    PRESET_AMOUNTS[0]
+  const fullProfile = useChurchStore(
+    state => state.fullProfile
   );
 
-  const [
-    customAmount,
-    setCustomAmount,
-  ] = useState("");
+  const {
+    give,
+    loading,
+    funds,
+    sheetRef,
+    openFund,
+  } = useGiveAction();
 
-  const openCategory = (
-    category: any
-  ) => {
+  const { copiedKey, copy } =
+    useCopyToClipboard();
+
+  const banks = toBankAccounts(
+    (fullProfile as any)?.banks
+  );
+
+  const pledges =
+    getPledgeLinks(fullProfile);
+
+  const churchName = cleanText(
+    fullProfile?.churchName
+  );
+
+  const openPledgePage = (
+    title: string,
+    uri: string
+  ) =>
     navigation.navigate(
       "ExternalUrl",
       {
-        title: category.name,
+        title,
 
-        uri: `https://my.churchplus.co/give/${category.id}`,
+        uri,
       }
     );
-  };
-
-  const onGiveNow = () => {
-    if (categories.length === 0) {
-      return;
-    }
-
-    openCategory(
-      categories[0]
-    );
-  };
-
-  if (loading) {
-    return (
-      <View
-        style={[
-          styles.centerWrap,
-          { backgroundColor: colors.background },
-        ]}
-      >
-        <ActivityIndicator
-          size="large"
-          color={colors.primary}
-        />
-      </View>
-    );
-  }
 
   return (
-    <ScrollView
-      style={[
-        styles.container,
-        { backgroundColor: colors.background },
-      ]}
-      contentContainerStyle={{
-        padding: 16,
+    <View
+      style={{
+        flex: 1,
 
-        paddingBottom: 40,
+        backgroundColor:
+          colors.background,
       }}
-      showsVerticalScrollIndicator={
-        false
-      }
     >
-      <View
-        style={
-          styles.heroWrap
+      <ScrollView
+        contentContainerStyle={{
+          padding: 16,
+
+          paddingBottom: 40,
+        }}
+        showsVerticalScrollIndicator={
+          false
         }
       >
-        <EventImagePlaceholder
-          height={160}
-        />
-      </View>
+        <Text
+          style={[
+            styles.eyebrow,
+            { color: colors.primary },
+          ]}
+        >
+          STEWARDSHIP
+        </Text>
 
-      <Text
-        style={[
-          styles.title,
-          { color: colors.textPrimary },
-        ]}
-      >
-        Giving
-      </Text>
+        <Text
+          style={[
+            styles.title,
+            { color: colors.textPrimary },
+          ]}
+        >
+          Giving & Stewardship
+        </Text>
 
-      <Text
-        style={[
-          styles.subtitle,
-          { color: colors.textSecondary },
-        ]}
-      >
-        Your generosity
-        sustains our
-        community and its
-        outreach programs.
-      </Text>
+        <Text
+          style={[
+            styles.subtitle,
+            { color: colors.textSecondary },
+          ]}
+        >
+          {churchName
+            ? `Support the mission and outreach of ${churchName}.`
+            : "Your generosity sustains our community and its outreach programs."}
+        </Text>
 
-      <View
-        style={
-          styles.amountRow
-        }
-      >
-        {PRESET_AMOUNTS.map(
-          amount => {
-            const active =
-              selectedAmount ===
-                amount &&
-              !customAmount;
+        <GivingCard
+          Icon={CreditCard}
+          title="Online Giving"
+          subtitle="Give securely online."
+        >
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={give}
+            disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel="Give online"
+            style={[
+              styles.primaryButton,
+              { backgroundColor: colors.primary },
+            ]}
+          >
+            {loading ? (
+              <ActivityIndicator
+                size="small"
+                color="#FFFFFF"
+              />
+            ) : null}
 
-            return (
+            <Text
+              style={
+                styles.primaryButtonText
+              }
+            >
+              {loading
+                ? "Loading..."
+                : "Give Online"}
+            </Text>
+
+            {!loading ? (
+              <ArrowUpRight
+                size={18}
+                color="#FFFFFF"
+              />
+            ) : null}
+          </TouchableOpacity>
+        </GivingCard>
+
+        {banks.length > 0 ? (
+          <GivingCard
+            Icon={Landmark}
+            title="Bank Transfer"
+            subtitle="Direct account transfer"
+          >
+            {banks.map(bank => {
+              const copied =
+                copiedKey ===
+                bank.key;
+
+              return (
+                <View
+                  key={bank.key}
+                  style={[
+                    styles.bankBox,
+                    { backgroundColor: colors.surfaceAlt },
+                  ]}
+                >
+                  <View
+                    style={
+                      styles.bankInfo
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.bankName,
+                        { color: colors.textSecondary },
+                      ]}
+                      numberOfLines={
+                        1
+                      }
+                    >
+                      {bank.bankName.toUpperCase()}
+                      {bank.description
+                        ? `  ·  ${bank.description}`
+                        : ""}
+                    </Text>
+
+                    <Text
+                      selectable
+                      style={[
+                        styles.accountNumber,
+                        { color: colors.textPrimary },
+                      ]}
+                    >
+                      {
+                        bank.accountNumber
+                      }
+                    </Text>
+
+                    {bank.accountName ? (
+                      <Text
+                        style={[
+                          styles.accountName,
+                          { color: colors.textSecondary },
+                        ]}
+                        numberOfLines={
+                          2
+                        }
+                      >
+                        {
+                          bank.accountName
+                        }
+                      </Text>
+                    ) : null}
+                  </View>
+
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() =>
+                      copy(
+                        bank.key,
+                        bank.accountNumber
+                      )
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel={`Copy ${bank.bankName} account number`}
+                    style={[
+                      styles.copyButton,
+                      { backgroundColor: colors.surface },
+                    ]}
+                  >
+                    {copied ? (
+                      <Check
+                        size={15}
+                        color={colors.primary}
+                      />
+                    ) : (
+                      <Copy
+                        size={15}
+                        color={colors.primary}
+                      />
+                    )}
+
+                    <Text
+                      style={[
+                        styles.copyText,
+                        { color: colors.primary },
+                      ]}
+                    >
+                      {copied
+                        ? "Copied"
+                        : "Copy"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+          </GivingCard>
+        ) : null}
+
+        {pledges.make ||
+        pledges.pay ? (
+          <GivingCard
+            Icon={Megaphone}
+            title="Pledges & Campaigns"
+            subtitle="Make a pledge, or pay one you've already made."
+          >
+            {pledges.make ? (
               <TouchableOpacity
-                key={amount}
-                onPress={() => {
-                  setSelectedAmount(
-                    amount
-                  );
-
-                  setCustomAmount(
-                    ""
-                  );
-                }}
+                activeOpacity={0.85}
+                onPress={() =>
+                  openPledgePage(
+                    "Make a Pledge",
+                    pledges.make
+                  )
+                }
+                accessibilityRole="button"
+                accessibilityLabel="Make a pledge"
                 style={[
-                  styles.amountPill,
-                  {
-                    backgroundColor: active
-                      ? colors.primary
-                      : colors.surface,
-                    borderColor: active
-                      ? colors.primary
-                      : colors.border,
-                  },
+                  styles.tintedButton,
+                  { backgroundColor: colors.primaryMuted },
                 ]}
               >
                 <Text
                   style={[
-                    styles.amountPillText,
-                    {
-                      color: active
-                        ? "#FFFFFF"
-                        : colors.textSecondary,
-                    },
+                    styles.tintedButtonText,
+                    { color: colors.primary },
                   ]}
                 >
-                  ${amount}
+                  Make a Pledge
                 </Text>
-              </TouchableOpacity>
-            );
-          }
-        )}
 
-        <TouchableOpacity
-          onPress={() =>
-            setCustomAmount(
-              customAmount ||
-                "0"
-            )
-          }
-          style={[
-            styles.amountPill,
-            {
-              backgroundColor:
-                customAmount !== ""
-                  ? colors.primary
-                  : colors.surface,
-              borderColor:
-                customAmount !== ""
-                  ? colors.primary
-                  : colors.border,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.amountPillText,
-              {
-                color:
-                  customAmount !== ""
-                    ? "#FFFFFF"
-                    : colors.textSecondary,
-              },
-            ]}
-          >
-            Custom
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={onGiveNow}
-        disabled={
-          categories.length ===
-          0
-        }
-        style={[
-          styles.giveButton,
-          { backgroundColor: colors.primary },
-          categories.length ===
-            0 &&
-            styles.giveButtonDisabled,
-        ]}
-      >
-        <Text
-          style={
-            styles.giveButtonText
-          }
-        >
-          Give Now
-        </Text>
-
-        <ChevronRight
-          size={18}
-          color="#FFFFFF"
-        />
-      </TouchableOpacity>
-
-      <Text
-        style={[
-          styles.sectionTitle,
-          { color: colors.textPrimary },
-        ]}
-      >
-        Where to Direct Your
-        Gift
-      </Text>
-
-      {categories.length > 0 ? (
-        categories.map(
-          (category: any) => (
-            <TouchableOpacity
-              key={
-                category.id
-              }
-              activeOpacity={0.85}
-              onPress={() =>
-                openCategory(
-                  category
-                )
-              }
-              style={[
-                styles.fundCard,
-                { backgroundColor: colors.surface },
-              ]}
-            >
-              <View
-                style={[
-                  styles.fundIcon,
-                  { backgroundColor: colors.primaryMuted },
-                ]}
-              >
-                <HandCoins
+                <ArrowUpRight
                   size={18}
                   color={colors.primary}
                 />
-              </View>
+              </TouchableOpacity>
+            ) : null}
 
-              <Text
+            {pledges.pay ? (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() =>
+                  openPledgePage(
+                    "Pay a Pledge",
+                    pledges.pay
+                  )
+                }
+                accessibilityRole="button"
+                accessibilityLabel="Pay a pledge"
                 style={[
-                  styles.fundName,
-                  { color: colors.textPrimary },
+                  styles.tintedButton,
+                  { backgroundColor: colors.primaryMuted },
                 ]}
               >
-                {category.name}
-              </Text>
+                <Text
+                  style={[
+                    styles.tintedButtonText,
+                    { color: colors.primary },
+                  ]}
+                >
+                  Pay a Pledge
+                </Text>
 
-              <ChevronRight
-                size={18}
-                color={colors.textMuted}
-              />
-            </TouchableOpacity>
-          )
-        )
-      ) : (
-        <Text
-          style={[
-            styles.emptyText,
-            { color: colors.textMuted },
-          ]}
-        >
-          No giving funds have
-          been set up for this
-          church yet.
-        </Text>
-      )}
-    </ScrollView>
+                <ArrowUpRight
+                  size={18}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </GivingCard>
+        ) : null}
+      </ScrollView>
+
+      <GiveFundSheet
+        ref={sheetRef}
+        funds={funds}
+        onSelect={openFund}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  eyebrow: {
+    fontSize: 12,
 
-  centerWrap: {
-    flex: 1,
+    fontWeight: "800",
 
-    alignItems: "center",
+    letterSpacing: 0.6,
 
-    justifyContent: "center",
-  },
-
-  heroWrap: {
-    borderRadius: 16,
-
-    overflow: "hidden",
-
-    marginBottom: 16,
+    marginBottom: 6,
   },
 
   title: {
-    fontSize: 24,
+    fontSize: 26,
 
     fontWeight: "800",
   },
@@ -352,40 +452,58 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
 
-    marginTop: 6,
+    marginTop: 8,
 
-    marginBottom: 18,
+    marginBottom: 20,
 
     lineHeight: 20,
   },
 
-  amountRow: {
-    flexDirection: "row",
+  card: {
+    borderRadius: 18,
 
-    gap: 8,
+    padding: 18,
 
     marginBottom: 16,
   },
 
-  amountPill: {
-    flex: 1,
+  cardHeaderRow: {
+    flexDirection: "row",
 
     alignItems: "center",
 
-    paddingVertical: 12,
+    gap: 12,
 
-    borderRadius: 20,
-
-    borderWidth: 1,
+    marginBottom: 16,
   },
 
-  amountPillText: {
-    fontSize: 14,
+  cardIcon: {
+    width: 44,
+
+    height: 44,
+
+    borderRadius: 22,
+
+    alignItems: "center",
+
+    justifyContent: "center",
+  },
+
+  cardTitle: {
+    fontSize: 16,
 
     fontWeight: "700",
   },
 
-  giveButton: {
+  cardSubtitle: {
+    fontSize: 13,
+
+    marginTop: 2,
+
+    lineHeight: 18,
+  },
+
+  primaryButton: {
     flexDirection: "row",
 
     alignItems: "center",
@@ -397,15 +515,9 @@ const styles = StyleSheet.create({
     borderRadius: 24,
 
     paddingVertical: 15,
-
-    marginBottom: 28,
   },
 
-  giveButtonDisabled: {
-    opacity: 0.5,
-  },
-
-  giveButtonText: {
+  primaryButtonText: {
     color: "#FFFFFF",
 
     fontWeight: "700",
@@ -413,15 +525,29 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 
-  sectionTitle: {
-    fontSize: 16,
+  tintedButton: {
+    flexDirection: "row",
 
-    fontWeight: "700",
+    alignItems: "center",
 
-    marginBottom: 12,
+    justifyContent: "center",
+
+    gap: 8,
+
+    borderRadius: 24,
+
+    paddingVertical: 14,
+
+    marginTop: 10,
   },
 
-  fundCard: {
+  tintedButtonText: {
+    fontWeight: "700",
+
+    fontSize: 14,
+  },
+
+  bankBox: {
     flexDirection: "row",
 
     alignItems: "center",
@@ -435,31 +561,51 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  fundIcon: {
-    width: 38,
+  bankInfo: {
+    flex: 1,
+  },
 
-    height: 38,
+  bankName: {
+    fontSize: 11,
 
-    borderRadius: 19,
+    fontWeight: "700",
+
+    letterSpacing: 0.5,
+  },
+
+  accountNumber: {
+    fontSize: 22,
+
+    fontWeight: "800",
+
+    letterSpacing: 0.5,
+
+    marginTop: 4,
+  },
+
+  accountName: {
+    fontSize: 12,
+
+    marginTop: 4,
+  },
+
+  copyButton: {
+    flexDirection: "row",
 
     alignItems: "center",
 
-    justifyContent: "center",
+    gap: 6,
+
+    borderRadius: 18,
+
+    paddingHorizontal: 14,
+
+    paddingVertical: 9,
   },
 
-  fundName: {
-    flex: 1,
-
-    fontSize: 14,
-
-    fontWeight: "700",
-  },
-
-  emptyText: {
+  copyText: {
     fontSize: 13,
 
-    textAlign: "center",
-
-    paddingVertical: 20,
+    fontWeight: "700",
   },
 });

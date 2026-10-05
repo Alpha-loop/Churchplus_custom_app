@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
 
     fontWeight: "800",
 
-    color: "#1D3AA8",
+    color: "#28166f",
   },
 
   subtitle: {
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
 
     fontWeight: "600",
 
-    color: "#1D3AA8",
+    color: "#28166f",
   },
 
   submitButton: {
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
 
     gap: 8,
 
-    backgroundColor: "#1D3AA8",
+    backgroundColor: "#28166f",
 
     borderRadius: 24,
 
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
 
     fontWeight: "700",
 
-    color: "#1D3AA8",
+    color: "#28166f",
   },
 
   guestWrap: {

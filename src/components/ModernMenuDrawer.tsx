@@ -23,6 +23,8 @@ import {
   Users,
   MessageCircle,
   LogOut,
+  Info,
+  StickyNote,
 } from "lucide-react-native";
 
 import { useTheme } from "@/theme/ThemeContext";
@@ -76,16 +78,28 @@ const PRIMARY_ITEMS = [
 ];
 
 const RESOURCE_ITEMS = [
-  // {
-  //   key: "BibleStudy",
-  //   label: "Bible Study",
-  //   Icon: BookOpen,
-  // },
+  {
+    key: "BibleStudy",
+    label: "Bible Study",
+    Icon: BookOpen,
+  },
 
   {
     key: "CommunityGroups",
     label: "Community",
     Icon: Users,
+  },
+
+  {
+    key: "AboutChurch",
+    label: "About",
+    Icon: Info,
+  },
+
+  {
+    key: "MyNotes",
+    label: "My Notes",
+    Icon: StickyNote,
   },
 ];
 

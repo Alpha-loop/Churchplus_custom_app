@@ -70,7 +70,7 @@ export default function ModernSettingsScreen({
           >
             <Church
               size={18}
-              color="#1D3AA8"
+              color="#28166f"
             />
           </View>
 

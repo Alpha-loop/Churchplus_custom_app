@@ -1026,7 +1026,7 @@ const styles = StyleSheet.create({
 
     fontWeight: "700",
 
-    color: "#1D3AA8",
+    color: "#28166f",
   },
 
   avatarWrap: {
@@ -1068,7 +1068,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 14,
 
-    backgroundColor: "#1D3AA8",
+    backgroundColor: "#28166f",
 
     alignItems: "center",
 
@@ -1086,7 +1086,7 @@ const styles = StyleSheet.create({
 
     fontWeight: "700",
 
-    color: "#1D3AA8",
+    color: "#28166f",
 
     letterSpacing: 0.3,
 

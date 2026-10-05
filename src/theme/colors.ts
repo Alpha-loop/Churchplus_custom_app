@@ -21,7 +21,7 @@ export const lightColors = {
   textOnPrimary: "#FFFFFF",
 
   // Brand / accent
-  primary: "#1D3AA8",
+  primary: "#28166f",
   primaryMuted: "#E9EDFB",
 
   // Borders / dividers

@@ -74,7 +74,7 @@ export default function ModernVerifyOtpScreen({
         >
           <ShieldCheck
             size={26}
-            color="#1D3AA8"
+            color="#28166f"
           />
         </View>
 
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   },
 
   submitButton: {
-    backgroundColor: "#1D3AA8",
+    backgroundColor: "#28166f",
 
     borderRadius: 24,
 
@@ -335,6 +335,6 @@ const styles = StyleSheet.create({
 
     fontWeight: "700",
 
-    color: "#1D3AA8",
+    color: "#28166f",
   },
 });

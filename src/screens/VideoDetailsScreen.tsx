@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   Share,
@@ -14,9 +15,9 @@ import { Image } from "expo-image";
 
 import {
   ChevronLeft,
-  ThumbsUp,
   Share2,
   Bookmark,
+  Gift,
 } from "lucide-react-native";
 
 import VideoPlayer from "@/modules/media/components/VideoPlayer";
@@ -24,6 +25,10 @@ import VideoPlayer from "@/modules/media/components/VideoPlayer";
 import useSavedVideos from "@/modules/media/hooks/useSavedVideos";
 
 import useRequireAuth from "@/modules/auth/hooks/useRequireAuth";
+
+import useGiveAction from "@/modules/giving/hooks/useGiveAction";
+
+import GiveFundSheet from "../components/giving/GiveFundSheet";
 
 import { formatCount } from "../screenUtils/formatCount";
 
@@ -50,6 +55,14 @@ export default function ModernVideoDetailsScreen({
   const { isSaved, toggleSaved } =
     useSavedVideos();
 
+  const {
+    give,
+    loading: giveLoading,
+    funds: giveFunds,
+    sheetRef: giveSheetRef,
+    openFund: openGiveFund,
+  } = useGiveAction();
+
   const [
     descriptionExpanded,
     setDescriptionExpanded,
@@ -66,18 +79,6 @@ export default function ModernVideoDetailsScreen({
     data.videoId
   );
 
-  const onLike = () =>
-    requireAuth(
-      () =>
-        Alert.alert(
-          "Coming Soon",
-          "Liking videos isn't available yet."
-        ),
-      {
-        message:
-          "Sign in to like this video.",
-      }
-    );
 
   const onSave = () =>
     requireAuth(
@@ -197,24 +198,36 @@ export default function ModernVideoDetailsScreen({
           >
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={
-                onLike
+              onPress={give}
+              disabled={
+                giveLoading
               }
-              style={
-                styles.actionButton
-              }
+              accessibilityRole="button"
+              accessibilityLabel="Give"
+              style={[
+                styles.actionButton,
+                styles.giveButton,
+              ]}
             >
-              <ThumbsUp
-                size={16}
-                color="rgba(17, 17, 17, 0.7)"
-              />
+              {giveLoading ? (
+                <ActivityIndicator
+                  size="small"
+                  color="#FFFFFF"
+                />
+              ) : (
+                <Gift
+                  size={16}
+                  color="#FFFFFF"
+                />
+              )}
 
               <Text
-                style={
-                  styles.actionText
-                }
+                style={[
+                  styles.actionText,
+                  styles.giveText,
+                ]}
               >
-                Like
+                Give
               </Text>
             </TouchableOpacity>
 
@@ -410,6 +423,12 @@ export default function ModernVideoDetailsScreen({
           ) : null}
         </View>
       </ScrollView>
+
+      <GiveFundSheet
+        ref={giveSheetRef}
+        funds={giveFunds}
+        onSelect={openGiveFund}
+      />
     </View>
   );
 }
@@ -500,6 +519,16 @@ const styles = StyleSheet.create({
     fontWeight: "700",
 
     color: "rgba(17, 17, 17, 0.75)",
+  },
+
+  // The one call-to-action in the row: solid, where Share and Save
+  // are neutral pills.
+  giveButton: {
+    backgroundColor: "#1D3AA8",
+  },
+
+  giveText: {
+    color: "#FFFFFF",
   },
 
   descriptionCard: {

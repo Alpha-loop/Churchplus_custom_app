@@ -13,7 +13,6 @@ import {
 
 import {
   ChevronLeft,
-  Church,
   User,
   Mail,
   Lock,
@@ -23,6 +22,8 @@ import {
   ArrowRight,
 } from "lucide-react-native";
 
+import { Image } from "expo-image";
+
 import useRegister from "@/modules/auth/hooks/useRegister";
 
 import { useChurchStore } from "@/store/churchStore";
@@ -31,7 +32,9 @@ export default function ModernRegisterScreen({
   navigation,
 }: any) {
   const {
+    firstName,
     setFirstName,
+    lastName,
     setLastName,
     email,
     setEmail,
@@ -47,14 +50,6 @@ export default function ModernRegisterScreen({
     state => state.fullProfile
   );
 
-  // The design shows a single "Full Name" field, but the backend
-  // payload needs firstName/lastName separately — split on the
-  // first space rather than add two fields not in the design.
-  const [
-    fullName,
-    setFullName,
-  ] = useState("");
-
   const [
     showPassword,
     setShowPassword,
@@ -65,27 +60,10 @@ export default function ModernRegisterScreen({
     setAgreedToTerms,
   ] = useState(false);
 
-  const onFullNameChange = (
-    text: string
-  ) => {
-    setFullName(text);
-
-    const [
-      first,
-      ...rest
-    ] = text.trim().split(
-      " "
-    );
-
-    setFirstName(first || "");
-
-    setLastName(
-      rest.join(" ")
-    );
-  };
-
   const canSubmit =
-    fullName.trim().length >
+    firstName.trim().length >
+      0 &&
+    lastName.trim().length >
       0 &&
     email.trim().length > 0 &&
     password.trim().length >
@@ -128,9 +106,19 @@ export default function ModernRegisterScreen({
             styles.iconWrap
           }
         >
-          <Church
-            size={26}
-            color="#FFFFFF"
+          <Image
+            cachePolicy="memory-disk"
+            // Local bundled asset instead of a remote logo URL —
+            // same reasoning and same file as LoginScreen.tsx:
+            // this is a dedicated single-church build, so the
+            // logo is guaranteed to be there and loads instantly.
+            // Adjust this filename if yours differs from
+            // "logo-full.png" in the project's assets/ folder.
+            source={require("../../../assets/logo-full.png")}
+            contentFit="cover"
+            style={
+              styles.logoImage
+            }
           />
         </View>
 
@@ -157,7 +145,7 @@ export default function ModernRegisterScreen({
               styles.fieldLabel
             }
           >
-            Full Name
+            First Name
           </Text>
 
           <View
@@ -171,11 +159,46 @@ export default function ModernRegisterScreen({
             />
 
             <TextInput
-              value={fullName}
+              value={firstName}
               onChangeText={
-                onFullNameChange
+                setFirstName
               }
-              placeholder="Enter your full name"
+              placeholder="Enter your first name"
+              placeholderTextColor="rgba(0,0,0,0.4)"
+              style={
+                styles.input
+              }
+            />
+          </View>
+        </View>
+
+        <View
+          style={styles.field}
+        >
+          <Text
+            style={
+              styles.fieldLabel
+            }
+          >
+            Last Name
+          </Text>
+
+          <View
+            style={
+              styles.inputWrap
+            }
+          >
+            <User
+              size={16}
+              color="rgba(0,0,0,0.4)"
+            />
+
+            <TextInput
+              value={lastName}
+              onChangeText={
+                setLastName
+              }
+              placeholder="Enter your last name"
               placeholderTextColor="rgba(0,0,0,0.4)"
               style={
                 styles.input
@@ -454,13 +477,21 @@ const styles = StyleSheet.create({
 
     borderRadius: 30,
 
-    backgroundColor: "#1D3AA8",
+    backgroundColor: "#28166f",
 
     alignItems: "center",
 
     justifyContent: "center",
 
     marginBottom: 14,
+
+    overflow: "hidden",
+  },
+
+  logoImage: {
+    width: "100%",
+
+    height: "100%",
   },
 
   title: {
@@ -468,7 +499,7 @@ const styles = StyleSheet.create({
 
     fontWeight: "800",
 
-    color: "#1D3AA8",
+    color: "#28166f",
   },
 
   subtitle: {
@@ -564,9 +595,9 @@ const styles = StyleSheet.create({
   },
 
   checkboxChecked: {
-    backgroundColor: "#1D3AA8",
+    backgroundColor: "#28166f",
 
-    borderColor: "#1D3AA8",
+    borderColor: "#28166f",
   },
 
   termsText: {
@@ -580,7 +611,7 @@ const styles = StyleSheet.create({
   },
 
   termsLink: {
-    color: "#1D3AA8",
+    color: "#28166f",
 
     fontWeight: "600",
   },
@@ -604,7 +635,7 @@ const styles = StyleSheet.create({
 
     gap: 8,
 
-    backgroundColor: "#1D3AA8",
+    backgroundColor: "#28166f",
 
     borderRadius: 24,
 
@@ -642,6 +673,6 @@ const styles = StyleSheet.create({
 
     fontWeight: "700",
 
-    color: "#1D3AA8",
+    color: "#28166f",
   },
 });

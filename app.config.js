@@ -78,6 +78,31 @@ const EAS_PROJECT_ID =
   process.env
     .EAS_PROJECT_ID || "";
 
+// Android masks adaptive icons to a circle/squircle and only
+// guarantees the central ~66% is visible. APP_ICON's artwork fills
+// ~77% of its canvas (fine for iOS, which only rounds corners), so
+// the emblem's wide tips would be clipped on Android. A separate,
+// padded foreground is used when the file exists; otherwise this
+// falls back to APP_ICON so a build for another church without one
+// never fails on a missing file.
+const adaptiveIconPath =
+  process.env
+    .ANDROID_ADAPTIVE_ICON ||
+  "./assets/adaptive-icon.png";
+
+const ANDROID_ADAPTIVE_ICON =
+  fs.existsSync(adaptiveIconPath)
+    ? adaptiveIconPath
+    : APP_ICON;
+
+// The UI is designed for phones. With supportsTablet: true, Apple
+// reviews the app on an iPad too (and requires iPad screenshots),
+// so any layout issue there is a rejection risk. Off by default;
+// set IOS_SUPPORTS_TABLET=true only after actually testing on iPad.
+const IOS_SUPPORTS_TABLET =
+  process.env.IOS_SUPPORTS_TABLET ===
+  "true";
+
 const NOTIFICATION_ICON_COLOR =
   process.env
     .NOTIFICATION_ICON_COLOR ||
@@ -109,7 +134,8 @@ module.exports = {
     },
 
     ios: {
-      supportsTablet: true,
+      supportsTablet:
+        IOS_SUPPORTS_TABLET,
 
       bundleIdentifier:
         IOS_BUNDLE_IDENTIFIER,
@@ -122,7 +148,7 @@ module.exports = {
     android: {
       adaptiveIcon: {
         foregroundImage:
-          APP_ICON,
+          ANDROID_ADAPTIVE_ICON,
 
         backgroundColor:
           APP_SPLASH_BACKGROUND_COLOR,
@@ -134,6 +160,19 @@ module.exports = {
 
       package:
         ANDROID_PACKAGE,
+
+      // SYSTEM_ALERT_WINDOW ("draw over other apps") comes from the
+      // default template for the dev menu overlay and has no use in
+      // a store build. If you ever build the development client and
+      // its debug overlay stops appearing, remove this line.
+      // RECORD_AUDIO: nothing here records audio (the camera is only
+      // used to scan QR codes), but a library's own manifest can
+      // re-add it at build time regardless of plugin options —
+      // blockedPermissions is what actually overrides that.
+      blockedPermissions: [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.RECORD_AUDIO",
+      ],
 
       // Only present at all when the file genuinely exists —
       // see the note above where GOOGLE_SERVICES_FILE is
@@ -157,6 +196,39 @@ module.exports = {
       "expo-secure-store",
       "expo-web-browser",
       "expo-video",
+
+      // Store-review purpose strings, written for what this app
+      // actually does. The auto-applied defaults ("Allow X to
+      // access your camera/location/microphone") are generic, and
+      // also declared microphone + location access this app never
+      // uses. Both plugins write the same camera key, so they're
+      // given identical text to keep the result independent of the
+      // order the plugins run in; `false` removes a permission.
+      [
+        "expo-camera",
+        {
+          cameraPermission:
+            "Used to scan the QR code at an event so you can check in.",
+
+          microphonePermission: false,
+
+          recordAudioAndroid: false,
+        },
+      ],
+
+      [
+        "expo-image-picker",
+        {
+          photosPermission:
+            "Used to choose a photo for your profile or a community post.",
+
+          cameraPermission:
+            "Used to scan the QR code at an event so you can check in.",
+
+          microphonePermission: false,
+        },
+      ],
+
       [
         "expo-notifications",
         {

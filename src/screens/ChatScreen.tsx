@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 import {
   ActivityIndicator,
   FlatList,
@@ -13,9 +15,21 @@ import {
 import {
   ChevronLeft,
   Send,
+  NotebookPen,
+  MoreHorizontal,
 } from "lucide-react-native";
 
 import useChat from "@/modules/social/hooks/useChat";
+
+import useNotes from "@/modules/notes/hooks/useNotes";
+
+import useModeration from "@/modules/moderation/hooks/useModeration";
+
+import useRequireAuth from "@/modules/auth/hooks/useRequireAuth";
+
+import NoteEditorSheet, {
+  NoteEditorHandle,
+} from "../components/notes/NoteEditorSheet";
 
 import { useAuthStore } from "@/store/authStore";
 
@@ -50,6 +64,59 @@ export default function ModernChatScreen({
     setText,
     sendMessage,
   } = useChat(userId);
+
+  const { addNote } = useNotes();
+
+  const { showUserMenu } =
+    useModeration();
+
+  const { requireAuth } =
+    useRequireAuth();
+
+  const noteEditorRef =
+    useRef<NoteEditorHandle>(
+      null
+    );
+
+  // A note about this specific conversation — tapping it later
+  // from My Notes reopens this same chat. Gated for guests for the
+  // same reason as everywhere else notes are saved: they're
+  // stored against a real person on the backend.
+  const handleAddNote = () =>
+    requireAuth(
+      () => {
+        const label = name
+          ? `Chat with ${name}`
+          : "Chat";
+
+        noteEditorRef.current?.open(
+          {
+            contextLabel: label,
+
+            onSave: content =>
+              addNote(
+                content,
+                "message",
+                String(userId),
+                label,
+                {
+                  name: "UserChat",
+
+                  params: {
+                    userId,
+
+                    name,
+                  },
+                }
+              ),
+          }
+        );
+      },
+      {
+        message:
+          "Sign in to save notes.",
+      }
+    );
 
   return (
     <KeyboardAvoidingView
@@ -92,8 +159,48 @@ export default function ModernChatScreen({
         </Text>
 
         <View
-          style={{ width: 22 }}
-        />
+          style={{
+            flexDirection: "row",
+
+            alignItems: "center",
+
+            gap: 16,
+          }}
+        >
+          <TouchableOpacity
+            onPress={
+              handleAddNote
+            }
+            hitSlop={8}
+          >
+            <NotebookPen
+              size={20}
+              color={colors.textPrimary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() =>
+              showUserMenu(
+                {
+                  id: userId,
+
+                  name,
+                },
+                // Nothing left to chat about once they're blocked.
+                () =>
+                  navigation.goBack()
+              )
+            }
+            hitSlop={8}
+            accessibilityLabel="Chat options"
+          >
+            <MoreHorizontal
+              size={20}
+              color={colors.textPrimary}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading ? (
@@ -231,6 +338,10 @@ export default function ModernChatScreen({
           />
         </TouchableOpacity>
       </View>
+
+      <NoteEditorSheet
+        ref={noteEditorRef}
+      />
     </KeyboardAvoidingView>
   );
 }

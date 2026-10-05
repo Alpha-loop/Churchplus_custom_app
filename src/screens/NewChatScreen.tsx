@@ -13,6 +13,10 @@ import { ChevronLeft } from "lucide-react-native";
 
 import useChatFriends from "@/modules/social/hooks/useChatFriends";
 
+import { useAuthStore } from "@/store/authStore";
+
+import { useBlockedIds } from "@/modules/moderation/store/blockedUsersStore";
+
 import { useTheme } from "@/theme/ThemeContext";
 
 export default function ModernNewChatScreen({
@@ -21,9 +25,27 @@ export default function ModernNewChatScreen({
   const { colors } = useTheme();
 
   const {
-    friends,
+    friends: allFriends,
     loading,
   } = useChatFriends();
+
+  const currentUserId =
+    useAuthStore(
+      state => state.user?.userId
+    );
+
+  const blockedIds = useBlockedIds(
+    currentUserId
+  );
+
+  // Someone the person has blocked shouldn't be offered as a chat
+  // partner.
+  const friends = allFriends.filter(
+    (friend: any) =>
+      !blockedIds.includes(
+        friend.id
+      )
+  );
 
   return (
     <View

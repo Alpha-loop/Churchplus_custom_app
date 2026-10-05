@@ -14,6 +14,13 @@ import OnboardingScreen from "@/screens/OnboardingScreen";
 // Main shell + every screen it can navigate to.
 import ModernMainTabNavigator from "@/navigation/ModernMainTabNavigator";
 import ProfileScreen from "@/screens/ProfileScreen";
+
+import BibleScreen from "@/screens/BibleScreen";
+import BibleReaderScreen from "@/screens/BibleReaderScreen";
+
+import AboutChurchScreen from "@/screens/AboutChurchScreen";
+
+import MyNotesScreen from "@/screens/MyNotesScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
 import EditProfileScreen from "@/screens/EditProfileScreen";
 import CommunityScreen from "@/screens/CommunityScreen";
@@ -124,6 +131,34 @@ export default function AppNavigator() {
             name="Profile"
             component={
               ProfileScreen
+            }
+          />
+
+          <Stack.Screen
+            name="Bible"
+            component={
+              BibleScreen
+            }
+          />
+
+          <Stack.Screen
+            name="BibleReader"
+            component={
+              BibleReaderScreen
+            }
+          />
+
+          <Stack.Screen
+            name="AboutChurch"
+            component={
+              AboutChurchScreen
+            }
+          />
+
+          <Stack.Screen
+            name="MyNotes"
+            component={
+              MyNotesScreen
             }
           />
 

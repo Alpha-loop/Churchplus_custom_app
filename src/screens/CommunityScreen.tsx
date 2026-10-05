@@ -14,6 +14,7 @@ import { Image } from "expo-image";
 import {
   Users,
   ChevronRight,
+  ChevronLeft,
   ImagePlus,
   X,
 } from "lucide-react-native";
@@ -22,9 +23,9 @@ import useCommunityFeed from "@/modules/home/hooks/useCommunityFeed";
 
 import useCreatePost from "@/modules/social/hooks/useCreatePost";
 
-import { useChurchStore } from "@/store/churchStore";
+import useModeration from "@/modules/moderation/hooks/useModeration";
 
-import ModernScreenWithHeader from "../components/ModernScreenWithHeader";
+import { useChurchStore } from "@/store/churchStore";
 
 import CommunityFeedCard from "../components/CommunityFeedCard";
 
@@ -57,6 +58,11 @@ export default function ModernCommunityScreen({
     publishPost,
   } = useCreatePost(prependFeed);
 
+  const {
+    canModeratePost,
+    showPostMenu,
+  } = useModeration();
+
   const fullProfile = useChurchStore(
     state => state.fullProfile
   );
@@ -72,7 +78,52 @@ export default function ModernCommunityScreen({
     );
 
   return (
-    <ModernScreenWithHeader>
+    <View
+      style={{
+        flex: 1,
+
+        backgroundColor:
+          colors.background,
+      }}
+    >
+      {/* Same header as the other drawer screens (Messages,
+          Notifications, Settings, My Notes, About, Bible): back
+          arrow + centered title. This screen used the tab-style
+          header (menu button, church name, avatar), which belongs
+          to the bottom-tab screens — Community is opened from the
+          drawer, so it should look like its siblings. */}
+      <View
+        style={[
+          styles.topBar,
+          { backgroundColor: colors.surface },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() =>
+            navigation.goBack()
+          }
+          hitSlop={8}
+        >
+          <ChevronLeft
+            size={22}
+            color={colors.textPrimary}
+          />
+        </TouchableOpacity>
+
+        <Text
+          style={[
+            styles.topBarTitle,
+            { color: colors.textPrimary },
+          ]}
+        >
+          Community
+        </Text>
+
+        <View
+          style={{ width: 22 }}
+        />
+      </View>
+
       <ScrollView
       style={[
         styles.container,
@@ -94,15 +145,6 @@ export default function ModernCommunityScreen({
         />
       }
     >
-      <Text
-        style={[
-          styles.title,
-          { color: colors.textPrimary },
-        ]}
-      >
-        Community
-      </Text>
-
       <Text
         style={[
           styles.subtitle,
@@ -272,6 +314,16 @@ export default function ModernCommunityScreen({
                   }
                 )
               }
+              onMore={
+                canModeratePost(
+                  item
+                )
+                  ? () =>
+                      showPostMenu(
+                        item
+                      )
+                  : undefined
+              }
             />
           )
         )
@@ -354,7 +406,7 @@ export default function ModernCommunityScreen({
         </TouchableOpacity>
       ) : null}
       </ScrollView>
-    </ModernScreenWithHeader>
+    </View>
   );
 }
 
@@ -367,16 +419,31 @@ const styles = StyleSheet.create({
     padding: 16,
   },
 
-  title: {
-    fontSize: 26,
+  topBar: {
+    flexDirection: "row",
 
-    fontWeight: "800",
+    alignItems: "center",
+
+    justifyContent:
+      "space-between",
+
+    paddingHorizontal: 16,
+
+    paddingTop: 54,
+
+    paddingBottom: 14,
+  },
+
+  topBarTitle: {
+    fontSize: 16,
+
+    fontWeight: "700",
   },
 
   subtitle: {
     fontSize: 14,
 
-    marginTop: 8,
+    marginTop: 0,
 
     marginBottom: 18,
 
