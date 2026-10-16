@@ -102,6 +102,11 @@ export default function useMeetupDiscovery() {
   ] = useState<any[]>([]);
 
   const [
+    loadError,
+    setLoadError,
+  ] = useState<string | null>(null);
+
+  const [
     currentIndex,
     setCurrentIndex,
   ] = useState(0);
@@ -184,6 +189,8 @@ export default function useMeetupDiscovery() {
       try {
         setLoading(true);
 
+        setLoadError(null);
+
         const data =
           await getMeetupUsers(
             tenantId,
@@ -198,21 +205,26 @@ export default function useMeetupDiscovery() {
         );
 
         setCurrentIndex(0);
-      } catch (error) {
+      } catch (error: any) {
         console.log(
           "MEETUP DISCOVERY ERROR:",
           error
+        );
+
+        setLoadError(
+          error?.response?.data
+            ?.message ||
+            error?.message ||
+            "Couldn't load members."
         );
       } finally {
         setLoading(false);
       }
     };
 
-    console.log('candidates', candidates);
-
   useEffect(() => {
     loadCandidates();
-  }, [tenantId, userId]);
+  }, [tenantId, userId, token]);
 
   const current =
     candidates[currentIndex];
@@ -326,9 +338,20 @@ export default function useMeetupDiscovery() {
   return {
     loading,
 
+    loadError,
+
+    reload: loadCandidates,
+
     current,
 
     upcoming,
+
+    remaining: Math.max(
+      candidates.length -
+        currentIndex -
+        1,
+      0
+    ),
 
     hasMore:
       currentIndex <

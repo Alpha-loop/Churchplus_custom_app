@@ -36,7 +36,10 @@ function PersonPhoto({
 }) {
   return photo ? (
     <Image
-              cachePolicy="memory-disk"
+      key={photo}
+      recyclingKey={photo}
+      cachePolicy="memory-disk"
+      transition={0}
       source={{ uri: photo }}
       style={styles.photo}
     />
@@ -126,8 +129,11 @@ export default function ModernSocialsScreen() {
 
   const {
     loading,
+    loadError,
+    reload,
     current,
     upcoming,
+    remaining,
     hasMore,
     skip,
     sendRequest,
@@ -160,6 +166,46 @@ export default function ModernSocialsScreen() {
           size="large"
           color={colors.primary}
         />
+      </View>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <View
+        style={[
+          styles.centerWrap,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        <Text
+          style={[
+            styles.emptyText,
+            { color: colors.textMuted },
+          ]}
+        >
+          {loadError}
+        </Text>
+
+        <TouchableOpacity
+          onPress={reload}
+          style={{
+            marginTop: 14,
+            paddingHorizontal: 22,
+            paddingVertical: 10,
+            borderRadius: 20,
+            backgroundColor: colors.primary,
+          }}
+        >
+          <Text
+            style={{
+              color: "#FFFFFF",
+              fontWeight: "700",
+            }}
+          >
+            Try again
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -206,7 +252,7 @@ export default function ModernSocialsScreen() {
     >
       {banner}
 
-      {upcoming.length > 0 ? (
+      {remaining > 0 ? (
         <View
           style={[
             styles.countBadge,
@@ -224,9 +270,9 @@ export default function ModernSocialsScreen() {
               { color: colors.primary },
             ]}
           >
-            {upcoming.length}{" "}
+            {remaining}{" "}
             more{" "}
-            {upcoming.length === 1
+            {remaining === 1
               ? "member"
               : "members"}{" "}
             to explore
@@ -290,6 +336,7 @@ export default function ModernSocialsScreen() {
           })}
 
         <View
+          key={current.id}
           style={[
             styles.card,
             { backgroundColor: colors.placeholder },

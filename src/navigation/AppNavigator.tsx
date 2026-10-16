@@ -43,6 +43,7 @@ import ConnectionProfileScreen from "@/shared/screens/ConnectionProfileScreen";
 import BankAccountsScreen from "@/shared/screens/BankAccounts";
 import OnlineGivingScreen from "@/shared/screens/OnlineGiving";
 import PledgesAndDonationsScreen from "@/shared/screens/Pledges";
+import ChurchOfficeScreen from "@/screens/ChurchOfficeScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -160,6 +161,13 @@ export default function AppNavigator() {
             component={
               MyNotesScreen
             }
+          />
+
+          <Stack.Screen
+           name="ChurchOffice"
+            component={
+              ChurchOfficeScreen
+            } 
           />
 
           <Stack.Screen

@@ -20,6 +20,10 @@ import {
   useCameraPermissions,
 } from "expo-camera";
 
+import { ChevronLeft } from "lucide-react-native";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { useFocusEffect } from "@react-navigation/native";
 
 import useEventCheckin from "@/modules/events/hooks/useEventCheckin";
@@ -63,6 +67,29 @@ export default function EventQRScannerScreen({ navigation }: any) {
   const [torchOn, setTorchOn] = useState(false);
 
   const { loading, submitCheckin } = useEventCheckin();
+
+  const insets = useSafeAreaInsets();
+
+  // The header is hidden on this full-screen camera view, so it
+  // needs its own way out.
+  const backButton = (
+    <Pressable
+      onPress={() =>
+        navigation.canGoBack()
+          ? navigation.goBack()
+          : navigation.navigate("Main")
+      }
+      hitSlop={10}
+      accessibilityRole="button"
+      accessibilityLabel="Go back"
+      style={[
+        styles.backButton,
+        { top: insets.top + 8 },
+      ]}
+    >
+      <ChevronLeft size={24} color="#FFFFFF" />
+    </Pressable>
+  );
 
   const { requireAuth } = useRequireAuth();
 
@@ -172,6 +199,8 @@ export default function EventQRScannerScreen({ navigation }: any) {
             {permanentlyDenied ? "Open Settings" : "Grant Permission"}
           </Text>
         </Pressable>
+
+        {backButton}
       </View>
     );
   }
@@ -221,6 +250,8 @@ export default function EventQRScannerScreen({ navigation }: any) {
           </View>
         )}
       </View>
+
+      {backButton}
 
       {Platform.OS !== "web" && (
         <Pressable
@@ -349,6 +380,17 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: "#111827",
     fontWeight: "700",
+  },
+
+  backButton: {
+    position: "absolute",
+    left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.18)",
   },
 
   torchToggle: {

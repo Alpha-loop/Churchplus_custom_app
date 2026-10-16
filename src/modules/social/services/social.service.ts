@@ -18,14 +18,40 @@ export const getMeetupUsers = async (
     }
   );
 
-  console.log(token)
+  // This backend usually answers { status, message, object }, but
+  // some endpoints return a bare array or use `data`. Calling
+  // .filter on the wrapper object threw a TypeError that the hook
+  // swallowed, leaving the deck silently empty.
+  const body = response.data;
 
-  return (
-    response.data || []
-  )
+  if (body?.status === false) {
+    throw new Error(
+      body?.message ||
+        "Couldn't load members."
+    );
+  }
+
+  const list = Array.isArray(body)
+    ? body
+    : Array.isArray(body?.object)
+    ? body.object
+    : Array.isArray(body?.data)
+    ? body.data
+    : Array.isArray(body?.object?.items)
+    ? body.object.items
+    : [];
+
+  if (__DEV__ && list.length === 0) {
+    console.log(
+      "MEETUP USERS: no list found in response",
+      JSON.stringify(body)?.slice(0, 300)
+    );
+  }
+
+  return list
     .filter(
       (item: any) =>
-        item.person
+        item?.person
     )
     .map(
       (item: any) => ({

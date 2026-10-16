@@ -92,6 +92,7 @@ export default function ModernHeader({
       case "DevotionalLibrary":
       case "CommunityGroups":
       case "AboutChurch":
+      case "ChurchOffice":
         // Content browsing — open to guests, same "read is open,
         // write is gated" rule requireAuth() enforces everywhere
         // else in this app.

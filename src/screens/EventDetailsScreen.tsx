@@ -24,6 +24,14 @@ import moment from "moment";
 
 import EventImagePlaceholder from "../components/events/EventImagePlaceholder";
 
+import { useState } from "react";
+
+import CheckInOptionsSheet from "@/components/events/CheckInOptionsSheet";
+
+import EventRegistrationSheet from "@/components/events/EventRegistrationSheet";
+
+import useEventRegistration from "@/modules/events/hooks/useEventRegistration";
+
 import useRequireAuth from "@/modules/auth/hooks/useRequireAuth";
 
 import { useTheme } from "@/theme/ThemeContext";
@@ -63,30 +71,57 @@ export default function ModernEventDetailsScreen({
         ).format("h:mm A")
       : null;
 
-  const onRegister = () =>
-    requireAuth(
-      () =>
-        Alert.alert(
-          "Coming Soon",
-          "Registering for events isn't available yet."
-        ),
-      {
-        message:
-          "Sign in to register for this event.",
-      }
-    );
+  const [sheetOpen, setSheetOpen] =
+    useState(false);
+
+  const [checkInOpen, setCheckInOpen] =
+    useState(false);
+
+  const registration =
+    useEventRegistration(event);
+
+  const canRegister =
+    registration.sessions.length > 0;
+
+  const onRegister = () => {
+    if (registration.registered) {
+      Alert.alert(
+        "Already registered",
+        "You've already registered for this event on this device."
+      );
+
+      return;
+    }
+
+    // Registration is tied to a person, so it needs an account.
+    requireAuth(() => setSheetOpen(true), {
+      message:
+        "Sign in to register for this event.",
+    });
+  };
 
   const onCheckIn = () =>
     requireAuth(
-      () =>
-        navigation.navigate(
-          "EventQRScanner"
-        ),
+      () => setCheckInOpen(true),
       {
         message:
           "Sign in to check in to this event.",
       }
     );
+
+  const onScanCode = () => {
+    setCheckInOpen(false);
+
+    // Let the modal finish closing before the camera screen
+    // pushes, so the two transitions don't collide on iOS.
+    setTimeout(
+      () =>
+        navigation.navigate(
+          "EventQRScanner"
+        ),
+      300
+    );
+  };
 
   const onShare = async () => {
     try {
@@ -356,7 +391,7 @@ export default function ModernEventDetailsScreen({
             </>
           ) : null}
 
-          {event.isRegistrationEnabled ? (
+          {canRegister ? (
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={
@@ -364,7 +399,12 @@ export default function ModernEventDetailsScreen({
               }
               style={[
                 styles.registerButton,
-                { backgroundColor: colors.primary },
+                {
+                  backgroundColor:
+                    registration.registered
+                      ? colors.textMuted
+                      : colors.primary,
+                },
               ]}
             >
               <Text
@@ -372,7 +412,9 @@ export default function ModernEventDetailsScreen({
                   styles.registerText
                 }
               >
-                REGISTER NOW
+                {registration.registered
+                  ? "REGISTERED"
+                  : "REGISTER NOW"}
               </Text>
             </TouchableOpacity>
           ) : null}
@@ -439,6 +481,36 @@ export default function ModernEventDetailsScreen({
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <CheckInOptionsSheet
+        visible={checkInOpen}
+        onClose={() =>
+          setCheckInOpen(false)
+        }
+        onScan={onScanCode}
+      />
+
+      <EventRegistrationSheet
+        visible={sheetOpen}
+        eventName={event.name}
+        sessions={
+          registration.sessions
+        }
+        personName={
+          registration.personName
+        }
+        submitting={
+          registration.submitting
+        }
+        error={registration.error}
+        onClearError={
+          registration.clearError
+        }
+        onSubmit={registration.submit}
+        onClose={() =>
+          setSheetOpen(false)
+        }
+      />
     </View>
   );
 }

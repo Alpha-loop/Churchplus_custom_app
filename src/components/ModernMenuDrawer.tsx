@@ -25,6 +25,7 @@ import {
   LogOut,
   Info,
   StickyNote,
+  Building2
 } from "lucide-react-native";
 
 import { useTheme } from "@/theme/ThemeContext";
@@ -94,6 +95,11 @@ const RESOURCE_ITEMS = [
     key: "AboutChurch",
     label: "About",
     Icon: Info,
+  },
+  { 
+    key: "ChurchOffice", 
+    label: "Church Office", 
+    Icon: Building2 
   },
 
   {

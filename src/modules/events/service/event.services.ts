@@ -47,3 +47,30 @@ export const checkInToEvent =
 
     return res.data;
   };
+
+export type EventRegistrationPayload = {
+  personID: string;
+  checkInAttendanceID: string;
+};
+
+// POST /api/portal/PortalEvents/register-attendance?tenantId=...
+// The backend answers { status, message, object } — a 200 with
+// status:false is a failure, so callers must check it.
+export const registerForEvent = async (
+  tenantId: string,
+  payload: EventRegistrationPayload,
+  token?: string | null
+) => {
+  const response = await api.post(
+    "/portal/PortalEvents/register-attendance",
+    payload,
+    {
+      params: { tenantId },
+      headers: token
+        ? { Authorization: `Bearer ${token}` }
+        : undefined,
+    }
+  );
+
+  return response.data;
+};
