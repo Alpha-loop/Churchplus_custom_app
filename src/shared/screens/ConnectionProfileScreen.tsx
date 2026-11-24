@@ -17,6 +17,8 @@ import AppScreenLayout from "@/shared/AppScreenLayout";
 
 import useConnectionProfile from "@/modules/social/hooks/useConnectionProfile";
 
+import { stripHtml } from "@/utils/text/stripHtml";
+
 export default function ConnectionProfileScreen({
   navigation,
   route,
@@ -328,9 +330,9 @@ export default function ConnectionProfileScreen({
                     styles.postContent
                   }
                 >
-                  {
+                  {stripHtml(
                     item.content
-                  }
+                  )}
                 </Text>
               </TouchableOpacity>
             )}

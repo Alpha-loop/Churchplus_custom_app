@@ -18,6 +18,8 @@ import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
 
 import AppNavigator from "@/navigation/AppNavigator";
 
+import { navigationRef } from "@/navigation/navigationRef";
+
 import { ThemeProvider, useTheme } from "@/theme/ThemeContext";
 
 import { useChurchStore } from "@/store/churchStore";
@@ -227,7 +229,7 @@ export default function App() {
     >
       <ThemeProvider>
         <SafeAreaProvider>
-          <NavigationContainer>
+          <NavigationContainer ref={navigationRef}>
             <PaperProvider>
               <BottomSheetModalProvider>
                 <ThemedStatusBar />

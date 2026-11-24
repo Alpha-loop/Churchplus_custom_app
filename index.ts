@@ -1,3 +1,7 @@
+import "./src/sentry"; // must be line 1
+
+registerRootComponent(App);
+
 import { registerRootComponent } from "expo";
 
 import App from "./App";

@@ -19,6 +19,13 @@
     },
     "production": {
       "autoIncrement": true
+    },
+    "sim-release": {
+      "extends": "production",
+      "autoIncrement": false,
+      "ios": {
+        "simulator": true
+      }
     }
   },
   "submit": {

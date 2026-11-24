@@ -42,6 +42,8 @@ import { useChurchStore } from "@/store/churchStore";
 
 import { useTheme } from "@/theme/ThemeContext";
 
+import { stripHtml } from "@/utils/text/stripHtml";
+
 export default function ModernDevotionalDetailScreen({
   navigation,
   route,
@@ -127,7 +129,7 @@ export default function ModernDevotionalDetailScreen({
     await Share.share({
       title: devotion.title,
 
-      message: `${devotion.title}\n\n${devotion.content}`,
+      message: `${devotion.title}\n\n${stripHtml(devotion.content)}`,
     });
   };
 

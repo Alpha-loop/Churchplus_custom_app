@@ -50,9 +50,12 @@ export async function registerForPushNotifications() {
     return null;
   }
 
+  // Native device token (FCM token on Android, APNs token on iOS),
+  // NOT an Expo push token: the ChurchPlus backend sends pushes
+  // through Firebase, the same way the FaithConnect app registers.
   try {
-    const token = await Notifications.getExpoPushTokenAsync({ projectId });
-    return token.data;
+    const token = await Notifications.getDevicePushTokenAsync();
+    return token.data as string;
   } catch (err) {
     console.error("Error getting push token:", err);
     return null;
@@ -84,8 +87,6 @@ export async function saveDeviceToken(
     await api.post(
       "/portal/PortalUtility/SaveDeviceToken",
       {
-        id: "",
-
         personID: personId,
 
         deviceToken: deviceToken,

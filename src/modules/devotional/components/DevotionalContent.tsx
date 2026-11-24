@@ -3,6 +3,8 @@ import {
   StyleSheet,
 } from "react-native";
 
+import { stripHtml } from "@/utils/text/stripHtml";
+
 interface Props {
   content: string;
 }
@@ -12,7 +14,7 @@ export default function DevotionalContent({
 }: Props) {
   return (
     <Text style={styles.content}>
-      {content}
+      {stripHtml(content)}
     </Text>
   );
 }

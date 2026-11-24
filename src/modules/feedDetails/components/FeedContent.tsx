@@ -4,6 +4,8 @@ import {
   View,
 } from "react-native";
 
+import { stripHtml } from "@/utils/text/stripHtml";
+
 interface Props {
   content: string;
 }
@@ -22,7 +24,7 @@ export default function FeedContent({
           styles.content
         }
       >
-        {content}
+        {stripHtml(content)}
       </Text>
     </View>
   );

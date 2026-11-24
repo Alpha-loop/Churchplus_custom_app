@@ -1,0 +1,104 @@
+<div align="center">
+    <a href="https://sentry.io/?utm_source=github&utm_medium=logo" target="_blank">
+        <img src="https://sentry-brand.storage.googleapis.com/github-banners/github-sdk-react.jpg" alt="Sentry for React Native">
+    </a>
+</div>
+
+_Bad software is everywhere, and we're tired of it. Sentry is on a mission to help developers write better software faster, so we can get back to enjoying technology. If you want to join us [<kbd>**Check out our open positions**</kbd>](https://sentry.io/careers/)_
+
+# Sentry SDK for React Native
+
+[![Build & Test](https://github.com/getsentry/sentry-react-native/actions/workflows/buildandtest.yml/badge.svg)](https://github.com/getsentry/sentry-react-native/actions/workflows/buildandtest.yml)
+[![npm version](https://img.shields.io/npm/v/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
+[![npm dm](https://img.shields.io/npm/dm/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
+[![npm dt](https://img.shields.io/npm/dt/@sentry/react-native.svg)](https://www.npmjs.com/package/@sentry/react-native)
+[![X Follow](https://img.shields.io/twitter/follow/sentry?label=sentry&style=social)](https://x.com/intent/follow?screen_name=sentry)
+[![Discord Chat](https://img.shields.io/discord/621778831602221064?logo=discord&logoColor=ffffff&color=7389D8)](https://discord.gg/PXa5Apfe7K)
+[![Runs with Expo](https://img.shields.io/badge/Runs%20with%20Expo-4630EB.svg?style=flat-square&logo=EXPO&labelColor=f3f3f3&logoColor=000)](https://expo.dev/)
+
+## Releases
+
+This repo uses the following ways to release SDK updates:
+
+- `Pre-release`: We create pre-releases (alpha, beta, RC,…) for larger and potentially more impactful changes, such as new features or major versions.
+- `Latest`: We continuously release major/minor/hotfix versions from the `main` branch. These releases go through all our internal quality gates and are very safe to use and intended to be the default for most teams.
+- `Stable`: We promote releases from `Latest` when they have been used in the field for some time and in scale, considering time since release, adoption, and other quality and stability metrics. These releases will be indicated on [the releases page](https://github.com/getsentry/sentry-react-native/releases/) with the `Stable` suffix.
+
+For a list of which SDK versions are bundled with each release, see [SDK-VERSIONS.md](SDK-VERSIONS.md).
+
+## Requirements
+
+- `react-native >= 0.65.0`
+
+## Features
+
+- Automatic JS Error Tracking (using [@sentry/browser](https://github.com/getsentry/sentry-javascript))
+- Automatic Native Crash Error Tracking (using [sentry-cocoa](https://github.com/getsentry/sentry-cocoa) & [sentry-android](https://github.com/getsentry/sentry-java) under the hood)
+- Offline storage of events
+- On Device symbolication for JS (in Debug)
+- [Autolinking](https://reactnative.dev/blog/2019/07/03/version-60#native-modules-are-now-autolinked)
+- Events with enriched device data
+- RAM bundle support
+- Hermes support
+- [Expo support](https://docs.sentry.io/platforms/react-native/manual-setup/expo/)
+- RN New Architecture support
+
+## Installation and Usage
+
+To install the package and setup your project:
+
+```sh
+npx @sentry/wizard -s -i reactNative
+```
+
+How to use it:
+
+```javascript
+import * as Sentry from "@sentry/react-native";
+
+Sentry.init({
+  dsn: "__DSN__",
+
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
+});
+
+Sentry.setTag("myTag", "tag-value");
+Sentry.setExtra("myExtra", "extra-value");
+Sentry.addBreadcrumb({ message: "test" });
+
+Sentry.captureMessage("Hello Sentry!");
+```
+
+### Swift Package Manager (iOS)
+
+React Native 0.87 and newer can autolink iOS dependencies through SwiftPM instead of CocoaPods. The SDK ships a `Package.swift`, so no extra configuration is needed:
+
+```sh
+npm install @sentry/react-native
+cd ios && npx react-native spm add --deintegrate
+```
+
+`--deintegrate` removes an existing CocoaPods setup; drop it on a project that never had one. Then build as usual — `npx react-native run-ios`, or open the `.xcodeproj` (SwiftPM projects have no `.xcworkspace`).
+
+Two limitations to know about:
+
+- **Every autolinked dependency must ship a `Package.swift`.** `react-native spm add` stops if one does not, and many community libraries still do not support SwiftPM. This is a React Native constraint, not a Sentry one.
+- **iOS only.** macOS, tvOS and visionOS keep building through CocoaPods.
+
+CocoaPods remains the default and is unaffected.
+
+## Upgrade
+
+If you are coming from `react-native-sentry` which was our SDK `< 1.0` you should follow the [upgrade guide](https://docs.sentry.io/platforms/react-native/#upgrading-from-react-native-sentry) and then follow the [install steps](https://docs.sentry.io/platforms/react-native/#integrating-the-sdk).
+
+## Resources
+
+- [![Documentation](https://img.shields.io/badge/documentation-sentry.io-green.svg)](https://docs.sentry.io/platforms/react-native/)
+- [![Discussions](https://img.shields.io/github/discussions/getsentry/sentry-react-native.svg)](https://github.com/getsentry/sentry-react-native/discussions)
+- [![Discord Chat](https://img.shields.io/discord/621778831602221064?logo=discord&logoColor=ffffff&color=7389D8)](https://discord.gg/PXa5Apfe7K)
+- [![Code of Conduct](https://img.shields.io/badge/code%20of%20conduct-sentry-green.svg)](https://github.com/getsentry/.github/blob/main/CODE_OF_CONDUCT.md)
+- [![X Follow](https://img.shields.io/twitter/follow/sentry?label=sentry&style=social)](https://x.com/intent/follow?screen_name=sentry)
+- Check out product updates, deep dives, and React Native tips on [the Sentry blog](https://blog.sentry.io/) and [our changelog](https://sentry.io/changelog/)

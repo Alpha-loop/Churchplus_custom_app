@@ -23,6 +23,8 @@ import { formatDevotionalDate } from "../screenUtils/formatDevotionalDate";
 
 import { useTheme } from "@/theme/ThemeContext";
 
+import { stripHtml } from "@/utils/text/stripHtml";
+
 const getInitial = (
   name?: string
 ) =>
@@ -375,7 +377,7 @@ export default function ModernNotificationsScreen({
                       ]}
                       numberOfLines={2}
                     >
-                      {item.content}
+                      {stripHtml(item.content)}
                     </Text>
                   </View>
                 </TouchableOpacity>

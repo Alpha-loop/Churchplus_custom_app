@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 import * as Notifications from "expo-notifications";
 
-import { EventSubscription } from "expo-modules-core";
+import { navigationRef } from "@/navigation/navigationRef";
 
 import {
   registerForPushNotifications,
@@ -13,20 +13,20 @@ import { useAuthStore } from "@/store/authStore";
 
 import { useChurchStore } from "@/store/churchStore";
 
-// Was built but never called anywhere in the entire faithConnect
-// codebase (main app included) — confirmed directly. This is the
-// actual wiring: fires once someone is authenticated, gets a
-// real Expo push token, and saves it to the real
-// SaveDeviceToken endpoint so the backend has something to send
-// to later. Runs from AppNavigator.tsx, only in the
-// canAccessMain branch — there's no reason to prompt for
-// notification permission before someone has even signed in.
+import type { AppNotificationData } from "@/types/notifications/notification.types";
+
+// Maps the `page` value the backend puts in a push's data payload
+// to a screen in AppNavigator. Agree these keys with the backend
+// team, then add one line per screen that pushes can open.
+const PAGE_TO_SCREEN: Record<string, string> = {
+  notifications: "Notifications",
+  // Check each screen's expected params before enabling:
+  // event: "EventDetails",
+  // devotional: "TodayDevotional",
+  // post: "FeedsDetail",
+};
+
 export default function usePushNotifications() {
-  // Was state.user?.userId — confirmed from a real login
-  // response that this backend's personId is a genuinely
-  // different value from userId, and SaveDeviceToken's schema
-  // names this field personID specifically. Same fix as
-  // useNotes.ts, for the same underlying confusion.
   const personId = useAuthStore(
     state => state.user?.personId
   );
@@ -39,72 +39,83 @@ export default function usePushNotifications() {
     state => state.tenantId
   );
 
-  const hasRegistered = useRef(false);
+  // Remembers which person + church this device's token was saved
+  // for, so logging in as someone else saves it again (same keying
+  // as the FaithConnect app).
+  const registeredKey = useRef<string | null>(null);
 
-  const notificationListener =
-    useRef<EventSubscription | null>(
-      null
-    );
+  // 1. Register the token whenever a (new) person is signed in.
+  useEffect(() => {
+    if (!personId || !tenantId || !accessToken) {
+      registeredKey.current = null;
+      return;
+    }
 
-  const responseListener =
-    useRef<EventSubscription | null>(
-      null
-    );
+    const key = `${personId}:${tenantId}`;
+
+    if (registeredKey.current === key) {
+      return;
+    }
+
+    registeredKey.current = key;
+
+    registerForPushNotifications().then(token => {
+      if (!token) {
+        return;
+      }
+
+      saveDeviceToken(
+        personId,
+        token,
+        tenantId,
+        accessToken
+      ).then(ok => {
+        // Allow a retry next time if the save failed.
+        if (!ok && registeredKey.current === key) {
+          registeredKey.current = null;
+        }
+      });
+    });
+  }, [personId, accessToken, tenantId]);
+
+  // 2. Open the right screen when a notification is tapped.
+  // useLastNotificationResponse also covers the app being
+  // launched from a closed state by tapping a notification,
+  // which a plain response listener misses.
+  const lastResponse =
+    Notifications.useLastNotificationResponse();
+
+  const handledId = useRef<string | null>(null);
 
   useEffect(() => {
     if (
-      !personId ||
-      hasRegistered.current
+      !lastResponse ||
+      !accessToken ||
+      !navigationRef.isReady()
     ) {
       return;
     }
 
-    hasRegistered.current = true;
+    const id =
+      lastResponse.notification.request.identifier;
 
-    registerForPushNotifications().then(
-      token => {
-        if (!token) {
-          return;
-        }
+    if (handledId.current === id) {
+      return;
+    }
 
-        saveDeviceToken(
-          personId,
-          token,
-          tenantId,
-          accessToken
-        );
-      }
+    handledId.current = id;
+
+    const data =
+      (lastResponse.notification.request.content
+        .data ?? {}) as AppNotificationData;
+
+    const screen = data.page
+      ? PAGE_TO_SCREEN[data.page]
+      : undefined;
+
+    navigationRef.navigate(
+      screen ?? "Notifications",
+      data.id ? { id: data.id } : undefined
     );
-
-    notificationListener.current =
-      Notifications.addNotificationReceivedListener(
-        notification => {
-          console.log(
-            "Foreground notification:",
-            notification
-          );
-        }
-      );
-
-    // Real navigation-on-tap isn't wired up — nothing anywhere
-    // sends a real push yet, so there's no real payload shape to
-    // route on. Logs for now, same honesty rule as everywhere
-    // else in this codebase: don't fabricate handling for a
-    // payload structure that doesn't exist yet.
-    responseListener.current =
-      Notifications.addNotificationResponseReceivedListener(
-        response => {
-          console.log(
-            "Notification tapped:",
-            response
-          );
-        }
-      );
-
-    return () => {
-      notificationListener.current?.remove();
-
-      responseListener.current?.remove();
-    };
-  }, [personId]);
+  }, [lastResponse, accessToken]);
 }

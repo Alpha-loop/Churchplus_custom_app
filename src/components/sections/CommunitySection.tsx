@@ -17,6 +17,8 @@ import { relativeTime } from "../../screenUtils/relativeTime";
 
 import { useTheme } from "@/theme/ThemeContext";
 
+import { stripHtml } from "@/utils/text/stripHtml";
+
 interface Props {
   feed?: Feed;
 
@@ -86,7 +88,7 @@ export default function CommunitySection({
         ]}
         numberOfLines={3}
       >
-        {feed.content}
+        {stripHtml(feed.content)}
       </Text>
 
       <View style={styles.footerRow}>

@@ -114,7 +114,7 @@ module.exports = {
 
     slug: APP_SLUG,
 
-    version: "1.0.0",
+    version: "1.2.0",
 
     orientation: "portrait",
 
@@ -230,11 +230,28 @@ module.exports = {
       ],
 
       [
+        "@sentry/react-native/expo",
+        {
+          url: "https://sentry.io/",
+          project: "react-native",
+          organization: "churchplus",
+        },
+      ],
+
+      [
         "expo-notifications",
         {
           icon: APP_ICON,
 
           color: NOTIFICATION_ICON_COLOR,
+        },
+      ],
+
+      [
+        "expo-location",
+        {
+          locationWhenInUsePermission:
+            "Used to confirm you're at the church venue when you check in to an event.",
         },
       ],
     ],

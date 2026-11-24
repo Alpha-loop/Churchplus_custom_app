@@ -16,6 +16,8 @@ import {
   Unlike,
 } from "@/assets/img/like";
 
+import { stripHtml } from "@/utils/text/stripHtml";
+
 interface Props {
   item: any;
 
@@ -203,9 +205,9 @@ export default function SocialFeedCard({
                 marginTop: 10,
               }}
             >
-              {
+              {stripHtml(
                 item.content
-              }
+              )}
             </Text>
 
             {item.mediaUrl ? (

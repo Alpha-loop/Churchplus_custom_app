@@ -20,6 +20,8 @@ import { dateUtils } from "../../../utils/date/date.utils";
 
 import { Feed } from "../types/home.types";
 
+import { stripHtml } from "@/utils/text/stripHtml";
+
 interface FeedCardProps {
   feed: Feed;
 
@@ -33,6 +35,8 @@ export default function FeedCard({
   onPress,
   onLikePress,
 }: FeedCardProps) {
+  const text = stripHtml(feed.content);
+
   return (
     <View style={styles.card}>
       <View
@@ -83,15 +87,15 @@ export default function FeedCard({
             styles.content
           }
         >
-          {feed.content?.length >
+          {text?.length >
           250
-            ? `${feed.content.slice(
+            ? `${text.slice(
                 0,
                 250
               )}...`
-            : feed.content}
+            : text}
 
-          {feed.content
+          {text
             ?.length > 250 && (
             <Text
               style={

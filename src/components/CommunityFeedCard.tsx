@@ -17,6 +17,8 @@ import { formatDevotionalDate } from "../screenUtils/formatDevotionalDate";
 
 import { useTheme } from "@/theme/ThemeContext";
 
+import { stripHtml } from "@/utils/text/stripHtml";
+
 interface Props {
   item: any;
 
@@ -191,7 +193,7 @@ export default function CommunityFeedCard({
           ]}
           numberOfLines={5}
         >
-          {item.content}
+          {stripHtml(item.content)}
         </Text>
 
         {item.mediaUrl ? (
